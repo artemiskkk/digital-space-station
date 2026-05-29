@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__5148f110-be41-4ab3-8e21-22f8c1e54418__notion-search",
+      "mcp__5148f110-be41-4ab3-8e21-22f8c1e54418__notion-get-users",
+      "PowerShell(go version)",
+      "PowerShell(Set-Location \"D:\\\\source_code\\\\digital_space_dev\\\\backend\"; $env:DATABASE_URL = \"postgresql://postgres:15191020630chen@db.rwkawadqlxoiqlgooewo.supabase.co:5432/postgres\"; go run _migrate.go; Remove-Item _migrate.go)",
+      "Bash(npm --version)",
+      "PowerShell($token = \\(Invoke-RestMethod -Method POST -Uri \"http://localhost:8080/api/auth/login\" -ContentType \"application/json\" -Body '{\"password\":\"admin123\"}'\\).token; $token)",
+      "Bash(go get *)",
+      "Bash(go build *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git rm *)"
+    ]
+  }
+}

@@ -1,0 +1,223 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="好友管理 · DSS">
+  <section class="max-w-3xl mx-auto px-6 py-20">
+
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <p class="label">FRIENDS</p>
+        <h1 class="page-title">好友管理 <span class="dot"></span></h1>
+        <p class="page-desc">为朋友创建账号，让他们也拥有自己的数字空间。</p>
+      </div>
+      <button id="toggleForm" class="add-btn">+ 新增好友</button>
+    </div>
+
+    <!-- 新增表单 -->
+    <div id="createForm" class="form-box" style="display:none;">
+      <div class="form-row">
+        <div class="field" style="flex:1">
+          <label>USERNAME</label>
+          <input id="newUsername" placeholder="用户名" />
+        </div>
+        <div class="field" style="flex:1">
+          <label>PASSWORD</label>
+          <input id="newPassword" type="text" placeholder="初始密码" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button id="cancelCreate" class="btn-cancel">取消</button>
+        <button id="submitCreate" class="btn-publish">创建</button>
+      </div>
+    </div>
+
+    <!-- 改密码弹窗 -->
+    <div id="pwdModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:100; display:none; align-items:center; justify-content:center;">
+      <div style="background:#fff; border-radius:12px; padding:24px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.12);">
+        <h3 style="font-size:15px; font-weight:600; color:#111827; margin:0 0 16px;">修改密码</h3>
+        <p id="pwdTarget" style="font-size:12px; color:#9ca3af; margin-bottom:12px;"></p>
+        <div class="field" style="margin-bottom:14px;">
+          <label>NEW PASSWORD</label>
+          <input id="newPwd" type="text" placeholder="新密码" />
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button onclick="document.getElementById('pwdModal').style.display='none'" class="btn-cancel">取消</button>
+          <button id="submitPwd" class="btn-publish">确认修改</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户列表 -->
+    <div id="userList" class="user-list"></div>
+
+    <!-- 未登录/非admin -->
+    <div id="noAccess" style="display:none; text-align:center; padding:100px 0; color:#9ca3af;">
+      <p style="font-size:16px; margin-bottom:12px;">仅管理员可访问</p>
+    </div>
+
+  </section>
+</Layout>
+
+<style is:global>
+  .label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: #d1d5db; margin-bottom: 6px; }
+  .page-title { font-size: 28px; font-weight: 700; color: #111827; }
+  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#0891b2; margin-left:8px; vertical-align:middle; margin-bottom:2px; }
+  .page-desc { margin-top:8px; font-size:14px; color:#9ca3af; }
+  .add-btn { padding:8px 18px; border:none; border-radius:6px; background:#0891b2; color:#fff; font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.1em; cursor:pointer; flex-shrink:0; }
+
+  .form-box { background:#fff; border:1px solid rgba(8,145,178,0.2); border-radius:10px; padding:20px; margin-bottom:24px; }
+  .form-row { display:flex; gap:12px; margin-bottom:12px; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; color:#d1d5db; }
+  .field input { padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; background:#fafafa; color:#374151; font-size:13px; outline:none; }
+  .field input:focus { border-color:rgba(8,145,178,0.4); }
+  .form-actions { display:flex; justify-content:flex-end; gap:8px; }
+  .btn-cancel { padding:6px 16px; font-size:12px; border-radius:6px; border:1px solid #e5e7eb; background:none; color:#9ca3af; font-family:'DM Mono',monospace; cursor:pointer; }
+  .btn-publish { padding:6px 20px; font-size:12px; border-radius:6px; border:none; background:#0891b2; color:#fff; font-family:'DM Mono',monospace; cursor:pointer; }
+
+  .user-list { display:flex; flex-direction:column; gap:10px; }
+  .user-card {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+    transition: all 0.15s;
+  }
+  .user-card:hover { border-color:rgba(8,145,178,0.15); }
+  .user-info { display:flex; align-items:center; gap:12px; }
+  .user-avatar {
+    width:36px; height:36px; border-radius:50%; background:#f3f4f6;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:#9ca3af; font-weight:600;
+  }
+  .user-name { font-size:14px; font-weight:600; color:#111827; }
+  .user-role { font-family:'DM Mono',monospace; font-size:10px; color:#d1d5db; letter-spacing:0.1em; margin-top:2px; }
+  .user-date { font-family:'DM Mono',monospace; font-size:11px; color:#d1d5db; }
+  .user-actions { display:flex; gap:6px; }
+  .act-btn {
+    padding:4px 10px; font-size:11px; border-radius:5px; cursor:pointer;
+    font-family:'DM Mono',monospace; transition:all 0.15s;
+  }
+  .act-pwd { border:1px solid #e5e7eb; background:none; color:#6b7280; }
+  .act-pwd:hover { border-color:rgba(8,145,178,0.3); color:#0891b2; }
+  .act-del { border:1px solid #e5e7eb; background:none; color:#d1d5db; }
+  .act-del:hover { border-color:rgba(239,68,68,0.3); color:#ef4444; }
+</style>
+
+<script is:inline>
+  var API = 'http://localhost:8080';
+  var isAdmin = window.__dss_isLoggedIn && window.__dss_isLoggedIn() && window.__dss_getRole() === 'admin';
+
+  if (!isAdmin) {
+    document.querySelector('.page-title').parentElement.parentElement.querySelector('.add-btn').style.display = 'none';
+    document.getElementById('noAccess').style.display = 'block';
+  }
+
+  function getToken() {
+    return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
+  }
+
+  // Load users
+  if (isAdmin) {
+    getToken().then(function(t) {
+      return fetch(API + '/api/users', { headers: { 'Authorization': 'Bearer ' + t } });
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var users = data.items || [];
+      var listEl = document.getElementById('userList');
+      if (users.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center;padding:40px 0;color:#d1d5db;font-family:DM Mono,monospace;font-size:13px;">还没有好友账号</p>';
+        return;
+      }
+      listEl.innerHTML = users.map(function(u) {
+        var initial = u.username.charAt(0).toUpperCase();
+        var isAdminUser = u.role === 'admin';
+        var dateStr = (u.created_at || '').split('T')[0];
+        return '<div class="user-card">' +
+          '<div class="user-info">' +
+            '<div class="user-avatar">' + initial + '</div>' +
+            '<div><div class="user-name">' + u.username + '</div>' +
+            '<div class="user-role">' + (isAdminUser ? 'ADMIN' : 'USER') + ' · ' + dateStr + '</div></div>' +
+          '</div>' +
+          '<div class="user-actions">' +
+            '<button class="act-btn act-pwd" data-id="' + u.id + '" data-name="' + u.username + '">改密码</button>' +
+            (isAdminUser ? '' : '<button class="act-btn act-del" data-id="' + u.id + '">删除</button>') +
+          '</div></div>';
+      }).join('');
+
+      // Bind change password
+      document.querySelectorAll('.act-pwd').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          document.getElementById('pwdTarget').textContent = '用户：' + btn.dataset.name;
+          document.getElementById('pwdModal').style.display = 'flex';
+          document.getElementById('submitPwd').dataset.id = btn.dataset.id;
+        });
+      });
+
+      // Bind delete
+      document.querySelectorAll('.act-del').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (!confirm('确认删除用户 ' + btn.dataset.id + '？该用户的所有数据也会保留。')) return;
+          getToken().then(function(t) {
+            return fetch(API + '/api/users/' + btn.dataset.id, {
+              method: 'DELETE', headers: { 'Authorization': 'Bearer ' + t }
+            });
+          }).then(function() { location.reload(); });
+        });
+      });
+    });
+  }
+
+  // Toggle create form
+  document.getElementById('toggleForm').addEventListener('click', function() {
+    var form = document.getElementById('createForm');
+    form.style.display = form.style.display === 'none' ? '' : 'none';
+  });
+  document.getElementById('cancelCreate').addEventListener('click', function() {
+    document.getElementById('createForm').style.display = 'none';
+  });
+
+  // Create user
+  document.getElementById('submitCreate').addEventListener('click', function() {
+    var username = document.getElementById('newUsername').value.trim();
+    var password = document.getElementById('newPassword').value;
+    if (!username || !password) { alert('请填写用户名和密码'); return; }
+    var btn = document.getElementById('submitCreate');
+    btn.textContent = '创建中...';
+    getToken().then(function(t) {
+      return fetch(API + '/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+        body: JSON.stringify({ username: username, password: password })
+      });
+    }).then(function(r) {
+      if (!r.ok) return r.json().then(function(d) { throw new Error(d.error); });
+      location.reload();
+    }).catch(function(e) {
+      alert(e.message || '创建失败');
+      btn.textContent = '创建';
+    });
+  });
+
+  // Change password
+  document.getElementById('submitPwd').addEventListener('click', function() {
+    var newPwd = document.getElementById('newPwd').value;
+    if (!newPwd) { alert('请输入新密码'); return; }
+    var userId = parseInt(document.getElementById('submitPwd').dataset.id);
+    var btn = document.getElementById('submitPwd');
+    btn.textContent = '修改中...';
+    getToken().then(function(t) {
+      return fetch(API + '/api/users/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+        body: JSON.stringify({ user_id: userId, new_password: newPwd })
+      });
+    }).then(function(r) {
+      if (!r.ok) return r.json().then(function(d) { throw new Error(d.error); });
+      alert('密码已修改');
+      document.getElementById('pwdModal').style.display = 'none';
+      btn.textContent = '确认修改';
+    }).catch(function(e) {
+      alert(e.message || '修改失败');
+      btn.textContent = '确认修改';
+    });
+  });
+</script>

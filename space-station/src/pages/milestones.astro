@@ -1,0 +1,330 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+let milestones: any[] = [];
+
+const cookieHeader = Astro.request.headers.get('cookie') || '';
+const tokenMatch = cookieHeader.match(/dss_token=([^;]+)/);
+const stoken = tokenMatch ? tokenMatch[1] : '';
+const fetchHeaders: Record<string,string> = {};
+if (stoken) fetchHeaders['Authorization'] = 'Bearer ' + stoken;
+
+try {
+  const res = await fetch(`${API_URL}/api/milestones`, { headers: fetchHeaders });
+  const data = await res.json();
+  milestones = data.items || [];
+} catch (e) {
+  console.error('Failed to fetch milestones:', e);
+}
+---
+
+<Layout title="里程碑 · DSS">
+  <section class="max-w-3xl mx-auto px-6 py-20">
+
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <p class="label">MILESTONES</p>
+        <h1 class="page-title">
+          人生里程碑
+          <span class="dot"></span>
+        </h1>
+        <p class="page-desc">值得被铭记的时刻。</p>
+      </div>
+      <button id="toggleForm" class="add-btn">+ 记录</button>
+    </div>
+
+    <!-- 新增表单 -->
+    <div id="createForm" class="form-box hidden">
+      <div class="form-row">
+        <div class="field" style="flex:1">
+          <label>TITLE</label>
+          <input id="msTitle" placeholder="里程碑标题" />
+        </div>
+        <div class="field" style="width:130px">
+          <label>DATE</label>
+          <input id="msDate" type="date" />
+        </div>
+        <div class="field" style="width:80px">
+          <label>ICON</label>
+          <input id="msIcon" value="🏁" maxlength="4" />
+        </div>
+      </div>
+      <div class="field">
+        <label>DETAIL</label>
+        <textarea id="msDetail" placeholder="详细描述（选填）" rows="3"></textarea>
+      </div>
+      <div class="form-actions">
+        <button id="cancelMs" class="btn-cancel">取消</button>
+        <button id="publishMs" class="btn-publish">保存</button>
+      </div>
+    </div>
+
+    <!-- 时间轴 -->
+    <div class="timeline">
+      {milestones.length > 0 ? (
+        milestones.map((ms: any, i: number) => (
+          <div class="ms-item">
+            <div class="ms-line-col">
+              <div class="ms-icon">{ms.icon || '🏁'}</div>
+              {i < milestones.length - 1 && <div class="ms-connector"></div>}
+            </div>
+            <div class="ms-card">
+              <div class="ms-card-head">
+                <time>{ms.event_date}</time>
+                <button class="ms-del" data-id={ms.id}>删除</button>
+              </div>
+              <h3>{ms.title}</h3>
+              {ms.detail && <p class="ms-detail">{ms.detail}</p>}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div class="empty">
+          <p>还没有里程碑记录</p>
+          <p class="empty-hint">点击右上角「+ 记录」开始记录人生重要时刻</p>
+        </div>
+      )}
+    </div>
+
+  </section>
+</Layout>
+
+<style>
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: #d1d5db;
+    margin-bottom: 6px;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #0891b2;
+    margin-left: 8px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+  }
+  .page-desc {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #9ca3af;
+  }
+  .add-btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    background: #0891b2;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+  .add-btn:hover { box-shadow: 0 2px 12px rgba(8,145,178,0.3); }
+
+  /* Form */
+  .form-box {
+    background: #fff;
+    border: 1px solid rgba(8,145,178,0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+  .form-box.hidden { display: none; }
+  .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: #d1d5db;
+  }
+  .field input, .field textarea {
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fafafa;
+    color: #374151;
+    font-size: 13px;
+    outline: none;
+  }
+  .field input:focus, .field textarea:focus { border-color: rgba(8,145,178,0.4); }
+  .field textarea { resize: vertical; line-height: 1.7; }
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .btn-cancel {
+    padding: 6px 16px; font-size: 12px; border-radius: 6px;
+    border: 1px solid #e5e7eb; background: none; color: #9ca3af;
+    font-family: 'DM Mono', monospace; cursor: pointer;
+  }
+  .btn-publish {
+    padding: 6px 20px; font-size: 12px; border-radius: 6px;
+    border: none; background: #0891b2; color: #fff;
+    font-family: 'DM Mono', monospace; cursor: pointer;
+  }
+
+  /* Timeline */
+  .timeline { position: relative; }
+  .ms-item { display: flex; gap: 18px; }
+  .ms-line-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 44px;
+  }
+  .ms-icon {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .ms-item:hover .ms-icon {
+    border-color: #0891b2;
+    box-shadow: 0 0 0 4px rgba(8,145,178,0.08);
+  }
+  .ms-connector {
+    flex: 1;
+    width: 2px;
+    margin: 6px 0;
+    background: linear-gradient(to bottom, #e5e7eb, #f3f4f6);
+    border-radius: 1px;
+  }
+
+  .ms-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+  .ms-card:hover {
+    border-color: rgba(8,145,178,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .ms-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .ms-card-head time {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: #0891b2;
+    letter-spacing: 0.05em;
+  }
+  .ms-del {
+    background: none; border: none;
+    font-size: 11px; color: #e5e7eb;
+    cursor: pointer; opacity: 0;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.15s;
+  }
+  .ms-card:hover .ms-del { opacity: 1; }
+  .ms-del:hover { color: #ef4444; }
+
+  .ms-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .ms-detail {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.7;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 80px 0;
+    color: #d1d5db;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+  .empty-hint {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #e5e7eb;
+    font-family: 'Inter', sans-serif;
+  }
+</style>
+
+<script is:inline>
+  // Auth gate
+  if (!window.__dss_isLoggedIn || !window.__dss_isLoggedIn()) {
+    document.querySelector('section').innerHTML = '<div style="text-align:center;padding:100px 0;color:#9ca3af;"><p style="font-size:16px;margin-bottom:12px;">需要登录后访问</p><button onclick="window.__dss_toggleLogin()" style="padding:8px 20px;background:#0891b2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">登录</button></div>';
+  }
+
+  var API = 'http://localhost:8080';
+
+  function getToken() {
+    return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
+  }
+
+  var form = document.getElementById('createForm');
+  document.getElementById('toggleForm').addEventListener('click', function() {
+    form.classList.toggle('hidden');
+  });
+  document.getElementById('cancelMs').addEventListener('click', function() {
+    form.classList.add('hidden');
+  });
+
+  // Set default date to today
+  document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
+
+  document.getElementById('publishMs').addEventListener('click', function() {
+    var title = document.getElementById('msTitle').value.trim();
+    if (!title) { alert('请输入标题'); return; }
+    var btn = document.getElementById('publishMs');
+    btn.textContent = '保存中...';
+    getToken().then(function(t) {
+      return fetch(API + '/api/admin/milestones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+        body: JSON.stringify({
+          title: title,
+          detail: document.getElementById('msDetail').value,
+          icon: document.getElementById('msIcon').value || '🏁',
+          event_date: document.getElementById('msDate').value
+        })
+      });
+    }).then(function() {
+      location.reload();
+    }).catch(function() {
+      alert('保存失败');
+      btn.textContent = '保存';
+    });
+  });
+
+  document.querySelectorAll('.ms-del').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (!confirm('确认删除这条里程碑？')) return;
+      var id = btn.dataset.id;
+      getToken().then(function(t) {
+        return fetch(API + '/api/admin/milestones/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + t }
+        });
+      }).then(function() { location.reload(); });
+    });
+  });
+</script>

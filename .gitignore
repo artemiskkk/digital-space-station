@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+backend/*.exe
+backend/dss-backend
+uploads/
+digital-space-station.zip
+digital-space-station-v2/

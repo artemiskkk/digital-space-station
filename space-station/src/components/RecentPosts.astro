@@ -1,0 +1,59 @@
+---
+import PostCard from './PostCard.astro';
+
+const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+let posts: any[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/api/public/posts?page=1&size=3`);
+  const data = await res.json();
+  posts = data.items || [];
+} catch (e) {
+  console.error('Failed to fetch posts:', e);
+}
+---
+
+<section class="max-w-5xl mx-auto px-6 py-20">
+
+  <!-- Section Header -->
+  <div class="flex items-end justify-between mb-10">
+    <div>
+      <p class="text-xs tracking-[0.25em] uppercase mb-2" style="font-family: 'DM Mono', monospace; color: #d1d5db;">Recent Posts</p>
+      <h2 class="text-2xl font-bold tracking-wide" style="color: #111827;">
+        最新文章
+        <span class="inline-block w-1.5 h-1.5 rounded-full mb-1 ml-2 align-middle" style="background: #0891b2;"></span>
+      </h2>
+    </div>
+    <a
+      href="/blog"
+      class="hidden sm:flex items-center gap-2 text-xs transition-colors duration-300 tracking-widest group"
+      style="font-family: 'DM Mono', monospace; color: #9ca3af;"
+    >
+      ALL POSTS
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="transition-transform duration-300 group-hover:translate-x-0.5">
+        <path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+
+  <!-- Cards Grid -->
+  {posts.length > 0 ? (
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {posts.map((post: any) => (
+        <PostCard
+          title={post.title}
+          excerpt={post.excerpt}
+          date={post.created_at?.split('T')[0] || ''}
+          tags={post.tags || []}
+          slug={post.slug}
+          readTime={post.read_time || ''}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="text-sm text-slate-700 text-center py-16 font-mono tracking-wider">
+      暂无文章，敬请期待...
+    </p>
+  )}
+
+</section>

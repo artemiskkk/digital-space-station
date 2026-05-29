@@ -1,0 +1,201 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { marked } from 'marked';
+
+const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+const { slug } = Astro.params;
+
+// Read auth token from cookie (set on login) to access drafts/private posts
+const cookieHeader = Astro.request.headers.get('cookie') || '';
+const tokenMatch = cookieHeader.match(/dss_token=([^;]+)/);
+const token = tokenMatch ? tokenMatch[1] : '';
+
+const headers: Record<string, string> = {};
+if (token) headers['Authorization'] = 'Bearer ' + token;
+
+const res = await fetch(`${API_URL}/api/posts/${slug}`, { headers });
+if (!res.ok) return Astro.redirect('/blog');
+const post = await res.json();
+const title = post.title;
+const tags = post.tags || [];
+const excerpt = post.excerpt || '';
+const readTime = post.read_time || '';
+const content = post.content || '';
+const htmlContent = await marked(content);
+
+const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<Layout title={`${title} · DSS`} description={excerpt}>
+
+  <article class="max-w-3xl mx-auto px-6 py-20">
+
+    <!-- ── 返回按钮 ────────────────────────────────────────── -->
+    <a
+      href="/blog"
+      class="inline-flex items-center gap-2 text-xs transition-colors duration-300 tracking-widest mb-14 group"
+      style="font-family: 'DM Mono', monospace; color: #9ca3af;"
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="transition-transform duration-300 group-hover:-translate-x-0.5">
+        <path d="M12 7H2M6 3L2 7l4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      BACK TO BLOG
+    </a>
+
+    <!-- ── 文章 Header ────────────────────────────────────── -->
+    <header class="mb-14" style="animation: fadeUp 0.5s ease both;">
+
+      <!-- Tags -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        {tags.map(tag => (
+          <span
+            class="px-2.5 py-0.5 text-[10px] font-mono tracking-widest rounded uppercase"
+            style="
+              background: rgba(8,145,178,0.06);
+              border: 1px solid rgba(8,145,178,0.15);
+              color: #0891b2;
+            "
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <!-- Title -->
+      <h1
+        class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight tracking-wide mb-6"
+        style="color: #111827;"
+      >
+        {title}
+      </h1>
+
+      <!-- Meta: date + read time -->
+      <div class="flex flex-wrap items-center gap-4 text-xs tracking-widest" style="font-family: 'DM Mono', monospace; color: #9ca3af;">
+        <span class="flex items-center gap-1.5">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <path d="M4 1v2M8 1v2M1 5h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          <time datetime={post.created_at}>{formattedDate}</time>
+        </span>
+        {readTime && (
+          <span class="flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M6 3.5V6l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            {readTime}
+          </span>
+        )}
+      </div>
+
+      <!-- Divider with subtle glow -->
+      <div
+        class="mt-8 h-px w-full"
+        style="background: linear-gradient(to right, #0891b2, #e5e7eb 60%, transparent);"
+      ></div>
+    </header>
+
+    <!-- ── 文章正文 ─────────────────────────────────────────
+         prose-invert: 深色背景适配
+         prose-cyan:   链接、粗体使用 cyan 色调
+         max-w-none:   宽度由外层容器控制，prose 本身不限制
+    ─────────────────────────────────────────────────────── -->
+    <div class="prose prose-gray max-w-none article-content" style="color: #374151;">
+      <Fragment set:html={htmlContent} />
+    </div>
+
+    <!-- ── 文章底部签名 ───────────────────────────────────── -->
+    <footer class="mt-20 pt-8" style="border-top: 1px solid #f3f4f6;">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+
+        <!-- Tags again (bottom) -->
+        <div class="flex flex-wrap gap-2">
+          {tags.map(tag => (
+            <a
+              href={`/blog?tag=${tag}`}
+              class="px-2.5 py-0.5 text-[10px] font-mono tracking-widest rounded uppercase transition-all duration-300 hover:-translate-y-0.5"
+              style="
+                background: #f3f4f6;
+                border: 1px solid #e5e7eb;
+                color: #6b7280;
+              "
+            >
+              # {tag}
+            </a>
+          ))}
+        </div>
+
+        <!-- Back to top -->
+        <button
+          onclick="window.scrollTo({top:0,behavior:'smooth'})"
+          class="flex items-center gap-2 text-xs transition-colors duration-300 tracking-widest group"
+          style="font-family: 'DM Mono', monospace; color: #9ca3af;"
+        >
+          BACK TO TOP
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="transition-transform duration-300 group-hover:-translate-y-0.5">
+            <path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+      </div>
+    </footer>
+
+  </article>
+</Layout>
+
+<style>
+  /* ── 页面入场动画 ──────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .article-content {
+    animation: fadeUp 0.6s ease 0.15s both;
+  }
+
+  /* ── Shiki 代码块额外增强 ─────────────────────────────── */
+  .article-content :global(pre) {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  /* 代码块语言标签 */
+  .article-content :global(pre[data-language])::before {
+    content:       attr(data-language);
+    position:      absolute;
+    top:           0.6rem;
+    right:         1rem;
+    font-size:     10px;
+    font-family:   'DM Mono', monospace;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:         rgba(34,211,238,0.45);
+    pointer-events:none;
+  }
+
+  /* 表格 */
+  .article-content :global(table) {
+    border-collapse: separate;
+    border-spacing:  0;
+    border:          1px solid rgba(255,255,255,0.08);
+    border-radius:   8px;
+    overflow:        hidden;
+    width:           100%;
+  }
+  .article-content :global(thead tr) {
+    background: rgba(34,211,238,0.06);
+  }
+  .article-content :global(th),
+  .article-content :global(td) {
+    padding: 0.6rem 1rem;
+  }
+
+  /* View Transition：文章标题跨页动画 */
+  h1 { view-transition-name: article-title; }
+</style>

@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="关于 · DSS">
+  <section class="max-w-3xl mx-auto px-6 py-20">
+
+    <div class="mb-12">
+      <p class="text-xs tracking-[0.25em] uppercase mb-2" style="font-family: 'DM Mono', monospace; color: #d1d5db;">About</p>
+      <h1 class="text-3xl font-bold tracking-wide" style="color: #111827;">
+        关于作者
+        <span class="inline-block w-1.5 h-1.5 rounded-full mb-1 ml-2 align-middle" style="background: #0891b2;"></span>
+      </h1>
+    </div>
+
+    <div class="space-y-6 text-sm leading-relaxed" style="color: #6b7280;">
+
+      <div class="rounded-lg p-6" style="background: #fff; border: 1px solid #e5e7eb;">
+        <h2 class="text-lg font-semibold mb-3" style="color: #111827;">Artemis</h2>
+        <p>一个喜欢硬件与嵌入式的开发者。日常在 GD32、CH32、STM32 之间反复横跳，研究智能电网通信协议，偶尔写 Go 和前端。同时对 AI 保持持续关注，是 Claude 与 Codex 的忠实用户。相信好的工程师应该能从寄存器写到云端。</p>
+      </div>
+
+      <div class="rounded-lg p-6" style="background: #fff; border: 1px solid #e5e7eb;">
+        <h2 class="text-lg font-semibold mb-3" style="color: #111827;">关于这个站</h2>
+        <p>DSS（Digital Space Station）是一个零成本、全栈自建的个人数字空间。不依赖任何第三方博客平台，从后端 API 到前端渲染、从数据库到 CDN 全部自主掌控。它不只是博客——也是我的技术实验场、灵感暂存区和数字世界的个人据点。</p>
+        <div class="mt-4 pt-4" style="border-top: 1px solid #f3f4f6;">
+          <p class="text-xs" style="font-family: 'DM Mono', monospace; color: #9ca3af; line-height: 1.8;">
+            前台：Astro SSR · Tailwind CSS<br/>
+            后端：Go · Gin · JWT<br/>
+            数据：PostgreSQL (Supabase) · Cloudflare R2<br/>
+            部署：Vercel · Render
+          </p>
+        </div>
+      </div>
+
+      <div class="rounded-lg p-6" style="background: #fff; border: 1px solid #e5e7eb;">
+        <h2 class="text-lg font-semibold mb-3" style="color: #111827;">联系方式</h2>
+        <ul class="space-y-2 list-none p-0">
+          <li class="flex items-center gap-2" style="font-family: 'DM Mono', monospace; font-size: 12px;">
+            <span style="color: #d1d5db;">GitHub</span>
+            <span style="color: #0891b2;">—</span>
+            <a href="https://github.com/artemiskkk/" target="_blank" style="color: #0891b2; text-decoration: none;">github.com/artemiskkk</a>
+          </li>
+          <li class="flex items-center gap-2" style="font-family: 'DM Mono', monospace; font-size: 12px;">
+            <span style="color: #d1d5db;">Email</span>
+            <span style="color: #0891b2;">—</span>
+            <a href="mailto:c1162993225@gmail.com" style="color: #374151; text-decoration: none;">c1162993225@gmail.com</a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+  </section>
+</Layout>

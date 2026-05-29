@@ -1,0 +1,278 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = '个人数字空间站 · 探索、记录与代码' } = Astro.props;
+
+const navLinks = [
+  { href: '/blog',       label: '博客',   code: '01' },
+  { href: '/moments',    label: '碎片',   code: '02' },
+  { href: '/milestones', label: '里程碑', code: '03' },
+  { href: '/about',      label: '关于',   code: '04' },
+  { href: '/friends',    label: '好友',   code: '05', admin: true },
+];
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --accent:       #0891b2;
+      --accent-light: #22d3ee;
+      --accent-dim:   rgba(8,145,178,0.08);
+      --accent-border:rgba(8,145,178,0.2);
+      --bg:           #fafafa;
+      --surface:      #ffffff;
+      --text:         #374151;
+      --text-dim:     #9ca3af;
+      --text-h:       #111827;
+      --border:       #e5e7eb;
+      --border-light: #f3f4f6;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    ::-webkit-scrollbar       { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(8,145,178,0.25); border-radius: 99px; }
+
+    ::selection { background: rgba(8,145,178,0.15); color: var(--text-h); }
+
+    body {
+      font-family: 'Inter', 'DM Mono', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .nav-link {
+      position: relative;
+      transition: color 0.2s ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--accent);
+      transition: width 0.25s ease;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link:hover { color: var(--accent); }
+  </style>
+  <ViewTransitions />
+
+  <!-- Auth init: must be in <head> so page scripts can access it synchronously -->
+  <script is:inline>
+    (function() {
+      var stored = null;
+      try { stored = JSON.parse(localStorage.getItem('dss_auth') || 'null'); } catch(e) {}
+      window.__dss_auth = stored;
+      window.__dss_isLoggedIn = function() { return !!window.__dss_auth; };
+      window.__dss_getToken  = function() { return window.__dss_auth ? window.__dss_auth.token : ''; };
+      window.__dss_getRole   = function() { return window.__dss_auth ? window.__dss_auth.role : ''; };
+      window.__dss_getUserId = function() { return window.__dss_auth ? window.__dss_auth.user_id : 0; };
+      // Sync cookie for SSR pages
+      if (stored && stored.token && document.cookie.indexOf('dss_token=') === -1) {
+        document.cookie = 'dss_token=' + stored.token + '; path=/; max-age=86400; SameSite=Lax';
+      }
+    })();
+  </script>
+</head>
+
+<body class="min-h-screen relative overflow-x-hidden">
+
+  <!-- ─── Navigation ──────────────────────────────────────── -->
+  <header
+    class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center"
+    style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light);"
+  >
+    <nav class="max-w-5xl mx-auto w-full px-6 flex items-center justify-between">
+
+      <a href="/" class="flex items-center gap-2.5 group no-underline">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9.5" stroke="#d1d5db" stroke-width="1"/>
+          <circle cx="11" cy="11" r="5.5" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="2 3"/>
+          <circle cx="11" cy="11" r="2" fill="var(--accent)"/>
+          <ellipse cx="11" cy="11" rx="9.5" ry="3.5" stroke="var(--accent)" stroke-width="1" stroke-opacity="0.5" transform="rotate(-30 11 11)"/>
+        </svg>
+        <span class="font-display text-sm font-semibold tracking-widest text-gray-800 uppercase" style="font-family: 'Orbitron', sans-serif;">
+          DSS
+        </span>
+      </a>
+
+      <div class="flex items-center gap-7">
+        <ul class="flex items-center gap-7 list-none m-0 p-0">
+          {navLinks.map((link) => (
+            <li class={link.admin ? 'nav-admin-only' : ''} style={link.admin ? 'display:none' : ''}>
+              <a href={link.href} class="nav-link flex items-center gap-1.5 text-xs tracking-wider text-gray-400 no-underline">
+                <span class="text-[10px] text-gray-300" style="font-family: 'Orbitron', sans-serif;">{link.code}</span>
+                <span>{link.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- Auth button -->
+        <button id="authBtn" onclick="window.__dss_toggleLogin()" style="
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          padding: 4px 14px;
+          border-radius: 5px;
+          border: 1px solid #e5e7eb;
+          background: none;
+          color: #9ca3af;
+          cursor: pointer;
+          letter-spacing: 0.05em;
+          transition: all 0.15s;
+        ">登录</button>
+      </div>
+
+    </nav>
+  </header>
+
+  <!-- Login modal -->
+  <div id="loginModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:28px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.12);">
+      <h3 style="font-size:16px; font-weight:600; color:#111827; margin:0 0 18px;">登录 DSS</h3>
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; color:#d1d5db; margin-bottom:4px;">USERNAME</label>
+        <input id="loginUser" placeholder="用户名" style="width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; outline:none; color:#374151; box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; color:#d1d5db; margin-bottom:4px;">PASSWORD</label>
+        <input id="loginPass" type="password" placeholder="密码" style="width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; outline:none; color:#374151; box-sizing:border-box;" />
+      </div>
+      <p id="loginError" style="font-size:12px; color:#ef4444; margin:0 0 12px; display:none;"></p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button onclick="window.__dss_toggleLogin()" style="padding:6px 16px; font-size:12px; border-radius:6px; border:1px solid #e5e7eb; background:none; color:#9ca3af; cursor:pointer; font-family:'DM Mono',monospace;">取消</button>
+        <button id="loginSubmit" onclick="window.__dss_doLogin()" style="padding:6px 20px; font-size:12px; border-radius:6px; border:none; background:#0891b2; color:#fff; cursor:pointer; font-family:'DM Mono',monospace;">登录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Page Content ──────────────────────────────────────── -->
+  <main class="relative pt-14">
+    <slot />
+  </main>
+
+  <!-- ─── Footer ───────────────────────────────────────────── -->
+  <footer class="border-t mt-24 py-10" style="border-color: var(--border-light);">
+    <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs tracking-wider" style="color: var(--text-dim);">
+      <span>© 2025 <span style="color: var(--text);">Digital Space Station</span></span>
+      <span class="flex items-center gap-1.5" style="font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em;">
+        <span class="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style="background: var(--accent);"></span>
+        SYSTEM ONLINE
+      </span>
+    </div>
+  </footer>
+
+  <script is:inline>
+    var DSS_API = 'http://localhost:8080';
+
+    // Update auth button + admin nav
+    function updateAuthBtn() {
+      var btn = document.getElementById('authBtn');
+      if (!btn) return;
+      if (window.__dss_isLoggedIn()) {
+        btn.textContent = window.__dss_auth.username;
+        btn.style.color = '#0891b2';
+        btn.style.borderColor = 'rgba(8,145,178,0.3)';
+      } else {
+        btn.textContent = '登录';
+        btn.style.color = '#9ca3af';
+        btn.style.borderColor = '#e5e7eb';
+      }
+      if (window.__dss_getRole() === 'admin') {
+        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
+      }
+    }
+    updateAuthBtn();
+    // Re-run after ViewTransitions navigation
+    document.addEventListener('astro:page-load', updateAuthBtn);
+
+    // Toggle login modal
+    window.__dss_toggleLogin = function() {
+      if (__dss_isLoggedIn()) {
+        // Logout
+        if (confirm('确认退出登录？')) {
+          localStorage.removeItem('dss_auth');
+          window.__dss_auth = null;
+          document.cookie = 'dss_token=; path=/; max-age=0';
+          location.reload();
+        }
+        return;
+      }
+      var modal = document.getElementById('loginModal');
+      if (modal.style.display === 'flex') {
+        modal.style.display = 'none';
+      } else {
+        modal.style.display = 'flex';
+        document.getElementById('loginUser').focus();
+      }
+    };
+
+    // Do login
+    window.__dss_doLogin = function() {
+      var username = document.getElementById('loginUser').value.trim();
+      var password = document.getElementById('loginPass').value;
+      var errEl = document.getElementById('loginError');
+      errEl.style.display = 'none';
+
+      if (!username || !password) { errEl.textContent = '请填写用户名和密码'; errEl.style.display = 'block'; return; }
+
+      var btn = document.getElementById('loginSubmit');
+      btn.textContent = '登录中...';
+
+      fetch(DSS_API + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(res) {
+        if (!res.ok) { throw new Error(res.data.error || '登录失败'); }
+        localStorage.setItem('dss_auth', JSON.stringify(res.data));
+        window.__dss_auth = res.data;
+        // Set cookie so SSR pages can read the token
+        document.cookie = 'dss_token=' + res.data.token + '; path=/; max-age=86400; SameSite=Lax';
+        document.getElementById('loginModal').style.display = 'none';
+        location.reload();
+      })
+      .catch(function(e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+        btn.textContent = '登录';
+      });
+    };
+
+    // Enter key in password field
+    document.addEventListener('DOMContentLoaded', function() {
+      var passInput = document.getElementById('loginPass');
+      if (passInput) {
+        passInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') window.__dss_doLogin();
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

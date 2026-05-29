@@ -1,0 +1,607 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+let posts: any[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/api/public/posts?page=1&size=50`);
+  const data = await res.json();
+  posts = data.items || [];
+} catch (e) {
+  console.error('Failed to fetch posts:', e);
+}
+
+const categories = [
+  { key: 'all',    label: '全部文章', icon: '◎' },
+  { key: '技术手记', label: '技术手记', icon: '⚙' },
+  { key: '生活漫笔', label: '生活漫笔', icon: '☕' },
+  { key: '市场观察', label: '市场观察', icon: '📊' },
+  { key: '山河远阔', label: '山河远阔', icon: '🏔' },
+  { key: '读书札记', label: '读书札记', icon: '📖' },
+  { key: '随想杂谈', label: '随想杂谈', icon: '💭' },
+];
+---
+
+<Layout title="博客 · DSS">
+  <div class="blog-layout">
+
+    <!-- ── 左侧边栏 ── -->
+    <aside class="sidebar">
+      <p class="sidebar-label">CATEGORIES</p>
+      <nav class="cat-list">
+        {categories.map(cat => (
+          <a
+            href={cat.key === 'all' ? '/blog' : `/blog?cat=${cat.key}`}
+            class="cat-link"
+            data-cat={cat.key}
+          >
+            <span class="cat-icon">{cat.icon}</span>
+            {cat.label}
+          </a>
+        ))}
+      </nav>
+
+      <div class="sidebar-divider"></div>
+
+      <button id="toggleEditor" class="write-btn">+ 写文章</button>
+    </aside>
+
+    <!-- ── 右侧内容 ── -->
+    <main class="content">
+
+      <div class="content-header">
+        <div>
+          <p class="header-label">BLOG</p>
+          <h1 id="pageTitle" class="header-title">
+            全部文章
+            <span class="title-dot"></span>
+          </h1>
+        </div>
+        <span id="postCount" class="post-count"></span>
+      </div>
+
+      <!-- 编辑器 -->
+      <div id="editorPanel" class="editor hidden">
+        <div class="editor-row">
+          <div class="editor-field" style="flex:1">
+            <label>TITLE</label>
+            <input id="postTitle" placeholder="文章标题" />
+          </div>
+          <div class="editor-field" style="width:120px">
+            <label>CATEGORY</label>
+            <select id="postCategory">
+              <option value="">选择分类</option>
+              <option value="技术手记">技术手记</option>
+              <option value="生活漫笔">生活漫笔</option>
+              <option value="市场观察">市场观察</option>
+              <option value="山河远阔">山河远阔</option>
+              <option value="读书札记">读书札记</option>
+              <option value="随想杂谈">随想杂谈</option>
+            </select>
+          </div>
+          <div class="editor-field" style="width:120px">
+            <label>STATUS</label>
+            <select id="postStatus">
+              <option value="published">发布</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+        </div>
+        <div class="editor-row">
+          <div class="editor-field" style="flex:1">
+            <label>EXCERPT</label>
+            <input id="postExcerpt" placeholder="一句话摘要" />
+          </div>
+          <div class="editor-field" style="width:160px">
+            <label>SLUG</label>
+            <input id="postSlug" placeholder="url-slug" />
+          </div>
+          <input id="postTags" type="hidden" value="" />
+        </div>
+        <div class="editor-field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label>CONTENT · MARKDOWN</label>
+            <label id="uploadImgBtn" style="
+              font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.12em;
+              color:#0891b2; cursor:pointer; padding:2px 8px; border:1px solid rgba(8,145,178,0.3);
+              border-radius:4px; transition:all 0.15s;
+            ">⬆ 插入图片
+              <input id="imgFileInput" type="file" accept="image/*" style="display:none" />
+            </label>
+          </div>
+          <textarea id="postContent" placeholder="# 在这里写 Markdown..." rows="25"></textarea>
+        </div>
+        <div class="editor-actions">
+          <button id="cancelPost" class="btn-cancel">取消</button>
+          <button id="publishPost" class="btn-publish">发布</button>
+        </div>
+      </div>
+
+      <!-- 文章列表 -->
+      <div id="postList" class="post-list">
+        {posts.length > 0 ? (
+          posts.map((post: any) => (
+            <div
+              class="post-card"
+              data-tags={JSON.stringify(post.tags || [])}
+            >
+              <div class="post-card-top">
+                <div class="post-tags">
+                  {(post.tags || []).map((tag: string) => (
+                    <span class="post-tag">{tag}</span>
+                  ))}
+                </div>
+                <button class="del-post-btn" data-id={post.id} title="删除">✕</button>
+              </div>
+              <a href={`/blog/${post.slug}`} class="post-link">
+                <h3 class="post-title">{post.title}</h3>
+                <p class="post-excerpt">{post.excerpt}</p>
+                <div class="post-meta">
+                  <time>{post.created_at?.split('T')[0] || ''}</time>
+                  <span>{post.read_time || ''} →</span>
+                </div>
+              </a>
+            </div>
+          ))
+        ) : (
+          <p class="empty">暂无文章</p>
+        )}
+      </div>
+
+    </main>
+  </div>
+</Layout>
+
+<style is:global>
+  body {
+    background-image: linear-gradient(#f0f0f0 1px, transparent 1px),
+                      linear-gradient(90deg, #f0f0f0 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .blog-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: flex;
+    gap: 48px;
+    position: relative;
+  }
+
+  /* Fade out dot grid behind content area */
+  .blog-layout::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(8,145,178,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(8,145,178,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sidebar, .content { position: relative; z-index: 1; }
+
+  /* ── 侧边栏 ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+  }
+  .sidebar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: #d1d5db;
+    margin-bottom: 10px;
+  }
+  .sidebar-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 20px 0;
+  }
+  .cat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cat-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #9ca3af;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .cat-link:hover { background: #f9fafb; color: #374151; }
+  .cat-link.active { background: rgba(8,145,178,0.06); color: #0891b2; font-weight: 500; }
+  .cat-icon { font-size: 12px; opacity: 0.6; width: 16px; text-align: center; }
+
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag-item {
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .tag-item:hover { background: rgba(8,145,178,0.08); color: #0891b2; }
+  .tag-item.active { background: #0891b2; color: #fff; }
+
+  .write-btn {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: #0891b2;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+  .write-btn:hover { box-shadow: 0 2px 12px rgba(8,145,178,0.3); }
+
+  /* ── 内容区 ── */
+  .content { flex: 1; min-width: 0; }
+
+  .content-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: #d1d5db;
+    margin-bottom: 6px;
+  }
+  .header-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .title-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #0891b2;
+    margin-left: 8px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+  }
+  .post-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: #d1d5db;
+  }
+
+  /* ── 编辑器 ── */
+  .editor {
+    background: #fff;
+    border: 1px solid rgba(8,145,178,0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .editor.hidden { display: none; }
+  .editor-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .editor-field { display: flex; flex-direction: column; gap: 4px; }
+  .editor-field label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: #d1d5db;
+  }
+  .editor-field input,
+  .editor-field select,
+  .editor-field textarea {
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fafafa;
+    color: #374151;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .editor-field input:focus,
+  .editor-field textarea:focus { border-color: rgba(8,145,178,0.4); }
+  .editor-field textarea {
+    font-family: 'DM Mono', monospace;
+    line-height: 1.8;
+    resize: vertical;
+  }
+  .editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .btn-cancel {
+    padding: 6px 16px; font-size: 12px; border-radius: 6px;
+    border: 1px solid #e5e7eb; background: none; color: #9ca3af;
+    font-family: 'DM Mono', monospace; cursor: pointer;
+  }
+  .btn-publish {
+    padding: 6px 20px; font-size: 12px; border-radius: 6px;
+    border: none; background: #0891b2; color: #fff;
+    font-family: 'DM Mono', monospace; cursor: pointer;
+  }
+
+  /* ── 文章卡片 ── */
+  .post-list { display: flex; flex-direction: column; gap: 12px; }
+  .post-card {
+    display: block;
+    padding: 20px 24px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .post-card:hover {
+    border-color: rgba(8,145,178,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    transform: translateY(-2px);
+  }
+  .post-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .del-post-btn {
+    background: none; border: none; color: #e5e7eb; font-size: 14px;
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    opacity: 0; transition: all 0.15s;
+  }
+  .post-card:hover .del-post-btn { opacity: 1; }
+  .del-post-btn:hover { color: #ef4444; background: rgba(239,68,68,0.06); }
+  .post-link { text-decoration: none; display: block; }
+  .post-tags { display: flex; gap: 5px; }
+  .post-tag {
+    padding: 2px 8px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    background: rgba(8,145,178,0.06);
+    border: 1px solid rgba(8,145,178,0.12);
+    color: #0891b2;
+    text-transform: uppercase;
+  }
+  .post-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .post-excerpt {
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .post-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #d1d5db;
+  }
+  .empty {
+    text-align: center;
+    padding: 60px 0;
+    color: #d1d5db;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+</style>
+
+<script is:inline>
+  var API = 'http://localhost:8080';
+  var loggedIn = window.__dss_isLoggedIn && window.__dss_isLoggedIn();
+
+  function getToken() {
+    return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
+  }
+
+  // Hide write/delete buttons for guests
+  if (!loggedIn) {
+    document.querySelectorAll('.write-btn, .del-post-btn').forEach(function(el) { el.style.display = 'none'; });
+  }
+
+  // Guest: block article links, show login prompt
+  if (!loggedIn) {
+    document.querySelectorAll('.post-link').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.__dss_toggleLogin) window.__dss_toggleLogin();
+      });
+    });
+  }
+
+  // Logged in: reload with user's own posts
+  if (loggedIn) {
+    fetch(API + '/api/posts?page=1&size=50', {
+      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var items = data.items || [];
+      var listEl = document.getElementById('postList');
+      if (!listEl) return;
+      if (items.length === 0) {
+        listEl.innerHTML = '<p class="empty">暂无文章，点击左侧「+ 写文章」开始创作</p>';
+        return;
+      }
+      listEl.innerHTML = items.map(function(post) {
+        var tagsHtml = (post.tags || []).map(function(t) {
+          return '<span class="post-tag">' + t + '</span>';
+        }).join('');
+        return '<div class="post-card" data-tags=\'' + JSON.stringify(post.tags || []) + '\'>' +
+          '<div class="post-card-top"><div class="post-tags">' + tagsHtml + '</div>' +
+          '<button class="del-post-btn" data-id="' + post.id + '" title="删除">✕</button></div>' +
+          '<a href="/blog/' + post.slug + '" class="post-link">' +
+          '<h3 class="post-title">' + post.title + '</h3>' +
+          '<p class="post-excerpt">' + (post.excerpt || '') + '</p>' +
+          '<div class="post-meta"><time>' + (post.created_at || '').split('T')[0] + '</time>' +
+          '<span>' + (post.read_time || '') + ' →</span></div></a></div>';
+      }).join('');
+
+      // Re-bind delete
+      document.querySelectorAll('.del-post-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation(); e.preventDefault();
+          if (!confirm('确认删除？')) return;
+          getToken().then(function(t) {
+            return fetch(API + '/api/posts/' + btn.dataset.id, {
+              method: 'DELETE', headers: { 'Authorization': 'Bearer ' + t }
+            });
+          }).then(function() { location.reload(); });
+        });
+      });
+
+      // Re-run filter
+      var pc = document.getElementById('postCount');
+      if (pc) pc.textContent = items.length + ' 篇';
+    });
+  }
+
+  // Filter
+  var params = new URLSearchParams(window.location.search);
+  var activeCat = params.get('cat') || 'all';
+  var activeTag = params.get('tag') || '';
+
+  document.querySelectorAll('.cat-link').forEach(function(el) {
+    if (el.dataset.cat === activeCat) el.classList.add('active');
+  });
+  document.querySelectorAll('.tag-item').forEach(function(el) {
+    if (el.dataset.tag === activeTag) el.classList.add('active');
+  });
+
+  var pageTitle = document.getElementById('pageTitle');
+  var postCount = document.getElementById('postCount');
+  var visible = 0;
+
+  document.querySelectorAll('.post-card').forEach(function(el) {
+    var tags = JSON.parse(el.dataset.tags || '[]');
+    var show = true;
+    if (activeCat !== 'all' && tags.indexOf(activeCat) === -1) show = false;
+    if (activeTag && tags.indexOf(activeTag) === -1) show = false;
+    el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  if (activeCat !== 'all') pageTitle.innerHTML = activeCat + ' <span class="title-dot"></span>';
+  if (activeTag) pageTitle.innerHTML = '# ' + activeTag + ' <span class="title-dot"></span>';
+  postCount.textContent = visible + ' 篇';
+
+  // Editor
+  var panel = document.getElementById('editorPanel');
+  var postList = document.getElementById('postList');
+  var titleInput = document.getElementById('postTitle');
+  var slugInput = document.getElementById('postSlug');
+
+  function toggleEditor() {
+    var opening = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    postList.style.display = opening ? 'none' : '';
+    if (opening) titleInput.focus();
+  }
+
+  document.getElementById('toggleEditor').addEventListener('click', toggleEditor);
+  document.getElementById('cancelPost').addEventListener('click', function() {
+    panel.classList.add('hidden');
+    postList.style.display = '';
+  });
+
+  // Image upload
+  document.getElementById('imgFileInput').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var btn = document.getElementById('uploadImgBtn');
+    btn.textContent = '上传中...';
+    var fd = new FormData();
+    fd.append('image', file);
+    getToken().then(function(t) {
+      return fetch(API + '/api/upload/image', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + t },
+        body: fd
+      });
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.url) {
+        var ta = document.getElementById('postContent');
+        var pos = ta.selectionStart;
+        var md = '![](' + data.url + ')';
+        ta.value = ta.value.slice(0, pos) + md + ta.value.slice(pos);
+        ta.selectionStart = ta.selectionEnd = pos + md.length;
+        ta.focus();
+      } else {
+        alert(data.error || '上传失败');
+      }
+    }).catch(function() {
+      alert('上传失败');
+    }).finally(function() {
+      btn.childNodes[0].textContent = '⬆ 插入图片';
+      e.target.value = '';
+    });
+  });
+
+  titleInput.addEventListener('input', function() {
+    slugInput.value = titleInput.value.toLowerCase()
+      .replace(/[\s一-鿿]+/g, '-').replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-').replace(/^-|-$/g, '');
+  });
+
+  document.getElementById('publishPost').addEventListener('click', function() {
+    var title = titleInput.value.trim();
+    if (!title) { alert('请输入标题'); return; }
+    var btn = document.getElementById('publishPost');
+    btn.textContent = '发布中...';
+    getToken().then(function(t) {
+      var tagsStr = document.getElementById('postTags').value;
+      var category = document.getElementById('postCategory').value;
+      var tagsArr = tagsStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+      if (category && tagsArr.indexOf(category) === -1) tagsArr.unshift(category);
+      return fetch(API + '/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+        body: JSON.stringify({
+          title: title,
+          slug: slugInput.value || title,
+          excerpt: document.getElementById('postExcerpt').value,
+          content: document.getElementById('postContent').value,
+          tags: tagsArr,
+          status: document.getElementById('postStatus').value,
+          read_time: '', cover_url: ''
+        })
+      });
+    }).then(function() {
+      location.reload();
+    }).catch(function() {
+      alert('发布失败');
+      btn.textContent = '发布';
+    });
+  });
+
+  // Delete posts
+  document.querySelectorAll('.del-post-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!confirm('确认删除这篇文章？')) return;
+      var id = btn.dataset.id;
+      getToken().then(function(t) {
+        return fetch(API + '/api/posts/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + t }
+        });
+      }).then(function() { location.reload(); });
+    });
+  });
+</script>
