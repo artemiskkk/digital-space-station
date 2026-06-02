@@ -1,26 +1,5 @@
 ---
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
-let moments: any[] = [];
-
-const cookieHeader = Astro.request.headers.get('cookie') || '';
-const tokenMatch = cookieHeader.match(/dss_token=([^;]+)/);
-const token = tokenMatch ? tokenMatch[1] : '';
-const fetchHeaders: Record<string,string> = {};
-if (token) fetchHeaders['Authorization'] = 'Bearer ' + token;
-
-try {
-  const res = await fetch(`${API_URL}/api/moments?page=1&size=5`, { headers: fetchHeaders });
-  if (!res.ok) throw new Error('unauthorized');
-  const data = await res.json();
-  moments = (data.items || []).map((m: any) => ({
-    id:   String(m.id).padStart(3, '0'),
-    time: m.created_at?.replace('T', ' ').slice(0, 16) || '',
-    text: m.text,
-    mood: m.mood || '💬',
-  }));
-} catch (e) {
-  console.error('Failed to fetch moments:', e);
-}
+// Moments are private — fetched client-side with the user's token.
 ---
 
 <section class="max-w-5xl mx-auto px-6 py-20" style="border-top: 1px solid #f3f4f6;">
@@ -41,40 +20,11 @@ try {
       aria-hidden="true"
     ></div>
 
-    {moments.length > 0 ? (
-      <ul class="space-y-0 list-none m-0 p-0">
-        {moments.map((moment: any) => (
-          <li class="moment-item relative pl-12 pb-10 group">
-            <div
-              class="moment-dot absolute left-0 top-1 w-[38px] h-[38px] flex items-center justify-center rounded-full text-base transition-all duration-300"
-              style="background: #fafafa; border: 1px solid #e5e7eb;"
-            >
-              {moment.mood}
-            </div>
-            <div
-              class="moment-card rounded-lg p-5 transition-all duration-300"
-              style="background: #fff; border: 1px solid #e5e7eb;"
-            >
-              <time
-                datetime={moment.time}
-                class="block text-[11px] tracking-widest mb-2.5"
-                style="font-family: 'DM Mono', monospace; color: #d1d5db;"
-              >
-                {moment.time}
-                <span class="ml-2" style="color: #e5e7eb;">#{moment.id}</span>
-              </time>
-              <p class="text-sm leading-relaxed transition-colors duration-300" style="color: #6b7280;">
-                {moment.text}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    ) : (
+    <ul id="homeMoments" class="space-y-0 list-none m-0 p-0">
       <p class="text-sm text-center py-16" style="color: #d1d5db; font-family: 'DM Mono', monospace;">
-        暂无碎片记录...
+        加载中...
       </p>
-    )}
+    </ul>
 
     <div class="pl-12 pt-2">
       <a
@@ -103,3 +53,47 @@ try {
     transform: translateX(3px);
   }
 </style>
+
+<script is:inline>
+  (function() {
+    var box = document.getElementById('homeMoments');
+    if (!box) return;
+    var API = window.__DSS_API;
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+      });
+    }
+
+    // Moments require auth; if not logged in, show nothing meaningful
+    if (!window.__dss_isLoggedIn || !window.__dss_isLoggedIn()) {
+      box.innerHTML = '<p class="text-sm text-center py-16" style="color:#d1d5db;font-family:\'DM Mono\',monospace;">登录后查看碎片记录</p>';
+      return;
+    }
+
+    fetch(API + '/api/moments?page=1&size=5', {
+      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var items = (data && data.items) || [];
+      if (!items.length) {
+        box.innerHTML = '<p class="text-sm text-center py-16" style="color:#d1d5db;font-family:\'DM Mono\',monospace;">暂无碎片记录...</p>';
+        return;
+      }
+      box.innerHTML = items.map(function(m) {
+        var id = String(m.id).padStart(3, '0');
+        var time = (m.created_at || '').replace('T', ' ').slice(0, 16);
+        var mood = m.mood || '💬';
+        return '<li class="moment-item relative pl-12 pb-10 group">' +
+          '<div class="moment-dot absolute left-0 top-1 w-[38px] h-[38px] flex items-center justify-center rounded-full text-base transition-all duration-300" style="background:#fafafa;border:1px solid #e5e7eb;">' + mood + '</div>' +
+          '<div class="moment-card rounded-lg p-5 transition-all duration-300" style="background:#fff;border:1px solid #e5e7eb;">' +
+          '<time class="block text-[11px] tracking-widest mb-2.5" style="font-family:\'DM Mono\',monospace;color:#d1d5db;">' +
+          esc(time) + '<span class="ml-2" style="color:#e5e7eb;">#' + id + '</span></time>' +
+          '<p class="text-sm leading-relaxed" style="color:#6b7280;">' + esc(m.text) + '</p>' +
+          '</div></li>';
+      }).join('');
+    }).catch(function() {
+      box.innerHTML = '<p class="text-sm text-center py-16" style="color:#d1d5db;font-family:\'DM Mono\',monospace;">加载失败</p>';
+    });
+  })();
+</script>
