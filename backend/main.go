@@ -95,11 +95,12 @@ func main() {
 
 func ensureAdminUser(db *pgxpool.Pool) {
 	var count int
-	db.QueryRow(context.Background(), `SELECT COUNT(*) FROM users WHERE username='admin'`).Scan(&count)
+	db.QueryRow(context.Background(), `SELECT COUNT(*) FROM users WHERE role='admin'`).Scan(&count)
 	if count == 0 {
 		hashed, _ := bcrypt.GenerateFromPassword([]byte(config.C.AdminPassword), bcrypt.DefaultCost)
 		db.Exec(context.Background(),
-			`INSERT INTO users (id, username, password, role) VALUES (1, 'admin', $1, 'admin')`, string(hashed))
+			`INSERT INTO users (id, username, password, role) VALUES (1, $1, $2, 'admin')`,
+			config.C.AdminUsername, string(hashed))
 		log.Println("admin user created")
 	}
 }

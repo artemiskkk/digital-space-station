@@ -11,6 +11,7 @@ type Config struct {
 	Port          string
 	DatabaseURL   string
 	JWTSecret     string
+	AdminUsername string
 	AdminPassword string
 	R2AccountID   string
 	R2AccessKey   string
@@ -31,6 +32,7 @@ func Load() {
 		Port:          getEnv("PORT", "8080"),
 		DatabaseURL:   mustEnv("DATABASE_URL"),
 		JWTSecret:     mustEnv("JWT_SECRET"),
+		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),
 		AdminPassword: mustEnv("ADMIN_PASSWORD"),
 		R2AccountID:   getEnv("R2_ACCOUNT_ID", ""),
 		R2AccessKey:   getEnv("R2_ACCESS_KEY", ""),
