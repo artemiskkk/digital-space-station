@@ -1,5 +1,7 @@
 ---
 
+import Companion from '../components/Companion.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -185,6 +187,9 @@ const navLinks = [
       </span>
     </div>
   </footer>
+
+  <!-- ─── Companion ─────────────────────────────────────────── -->
+  <Companion />
 
   <script is:inline>
     var DSS_API = window.__DSS_API;

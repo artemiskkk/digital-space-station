@@ -1,0 +1,295 @@
+---
+// DSS Companion — a little floating robot with idle animation,
+// mouse tracking, speech bubbles, drag & close.
+---
+
+<div id="dssCompanion" class="companion" aria-hidden="true">
+  <!-- Speech bubble -->
+  <div id="companionBubble" class="companion-bubble"></div>
+
+  <!-- Close button -->
+  <button id="companionClose" class="companion-close" title="让它休息">×</button>
+
+  <!-- Robot SVG -->
+  <div id="companionBody" class="companion-body">
+    <svg width="84" height="100" viewBox="0 0 84 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Antenna -->
+      <line x1="42" y1="14" x2="42" y2="4" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+      <circle id="antennaLight" cx="42" cy="4" r="3.5" fill="#22d3ee"/>
+
+      <!-- Body -->
+      <rect x="18" y="52" width="48" height="40" rx="14" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+      <rect x="27" y="62" width="30" height="3" rx="1.5" fill="#e5e7eb"/>
+      <rect x="27" y="69" width="20" height="3" rx="1.5" fill="#e5e7eb"/>
+
+      <!-- Arms -->
+      <rect class="arm arm-left" x="8" y="58" width="9" height="22" rx="4.5" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+      <rect class="arm arm-right" x="67" y="58" width="9" height="22" rx="4.5" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+
+      <!-- Head -->
+      <rect x="16" y="14" width="52" height="40" rx="16" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+      <!-- Visor / screen -->
+      <rect x="22" y="22" width="40" height="24" rx="11" fill="#0f172a"/>
+
+      <!-- Eyes (pupils move) -->
+      <g id="eyes">
+        <circle id="eyeL" cx="34" cy="34" r="4.5" fill="#22d3ee"/>
+        <circle id="eyeR" cx="50" cy="34" r="4.5" fill="#22d3ee"/>
+      </g>
+
+      <!-- Cheeks -->
+      <circle cx="24" cy="42" r="2.5" fill="#22d3ee" opacity="0.35"/>
+      <circle cx="60" cy="42" r="2.5" fill="#22d3ee" opacity="0.35"/>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .companion {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 90;
+    width: 84px;
+    height: 100px;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  .companion.dragging { cursor: grabbing; }
+  .companion.hidden { display: none; }
+
+  .companion-body {
+    width: 100%;
+    height: 100%;
+    animation: companionFloat 3.5s ease-in-out infinite;
+    transform-origin: center bottom;
+    transition: transform 0.15s ease;
+  }
+  .companion.dragging .companion-body { animation: none; }
+  .companion.poke .companion-body { animation: companionPoke 0.5s ease; }
+
+  @keyframes companionFloat {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-8px) rotate(1deg); }
+  }
+  @keyframes companionPoke {
+    0%   { transform: translateY(0) scale(1); }
+    30%  { transform: translateY(4px) scale(1.08, 0.92); }
+    60%  { transform: translateY(-6px) scale(0.95, 1.05); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* Antenna blink */
+  #antennaLight { animation: antennaBlink 2.4s ease-in-out infinite; }
+  @keyframes antennaBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.25; }
+  }
+
+  /* Arms gentle sway */
+  .arm-left  { transform-origin: 12px 60px; animation: armSwayL 4s ease-in-out infinite; }
+  .arm-right { transform-origin: 71px 60px; animation: armSwayR 4s ease-in-out infinite; }
+  @keyframes armSwayL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-8deg)} }
+  @keyframes armSwayR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(8deg)} }
+
+  /* Speech bubble */
+  .companion-bubble {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 10px;
+    max-width: 200px;
+    width: max-content;
+    padding: 9px 13px;
+    background: #fff;
+    border: 1px solid var(--accent-border, rgba(8,145,178,0.2));
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #374151;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+    transform-origin: bottom right;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .companion-bubble.show { opacity: 1; transform: translateY(0) scale(1); }
+  .companion-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 24px;
+    width: 10px; height: 10px;
+    background: #fff;
+    border-right: 1px solid rgba(8,145,178,0.2);
+    border-bottom: 1px solid rgba(8,145,178,0.2);
+    transform: rotate(45deg);
+  }
+
+  /* Close button */
+  .companion-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .companion:hover .companion-close { opacity: 1; }
+  .companion-close:hover { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+
+  @media (max-width: 640px) {
+    .companion { right: 14px; bottom: 14px; transform: scale(0.85); transform-origin: bottom right; }
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    var el = document.getElementById('dssCompanion');
+    if (!el) return;
+
+    // Respect closed state
+    if (localStorage.getItem('dss_companion_hidden') === '1') {
+      el.classList.add('hidden');
+      return;
+    }
+
+    var body = document.getElementById('companionBody');
+    var bubble = document.getElementById('companionBubble');
+    var closeBtn = document.getElementById('companionClose');
+    var eyeL = document.getElementById('eyeL');
+    var eyeR = document.getElementById('eyeR');
+
+    var baseEyes = [{ x: 34, y: 34 }, { x: 50, y: 34 }];
+    var maxShift = 2.6;
+
+    // ── Eyes follow mouse ──────────────────────────────────
+    document.addEventListener('mousemove', function(e) {
+      if (el.classList.contains('dragging')) return;
+      var rect = el.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      var cy = rect.top + rect.height * 0.34;
+      var dx = e.clientX - cx;
+      var dy = e.clientY - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var sx = (dx / dist) * maxShift;
+      var sy = (dy / dist) * maxShift;
+      eyeL.setAttribute('cx', baseEyes[0].x + sx);
+      eyeL.setAttribute('cy', baseEyes[0].y + sy);
+      eyeR.setAttribute('cx', baseEyes[1].x + sx);
+      eyeR.setAttribute('cy', baseEyes[1].y + sy);
+    });
+
+    // ── Speech bubbles ─────────────────────────────────────
+    var idleLines = [
+      '系统在线运行中 ✦',
+      '今天也要好好写代码呀',
+      '检测到访客，欢迎～',
+      '要不要看看最新的博客？',
+      '碎片记录里藏着不少灵感',
+      '点我一下试试？',
+      '所有信号正常 📡',
+      'DSS 空间站待命中…'
+    ];
+    var pokeLines = [
+      '哎呀～',
+      '在的在的！',
+      '别戳啦 >_<',
+      '需要帮忙吗？',
+      '嘿！',
+      '收到指令 ✓'
+    ];
+    var bubbleTimer = null;
+
+    function say(text, duration) {
+      bubble.textContent = text;
+      bubble.classList.add('show');
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(function() {
+        bubble.classList.remove('show');
+      }, duration || 3200);
+    }
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // Greet on load
+    setTimeout(function() { say(idleLines[2]); }, 1200);
+
+    // Random idle chatter
+    setInterval(function() {
+      if (el.classList.contains('dragging')) return;
+      if (Math.random() < 0.5) say(pick(idleLines));
+    }, 14000);
+
+    // ── Click / poke reaction ──────────────────────────────
+    body.addEventListener('click', function(e) {
+      if (el._dragged) { el._dragged = false; return; }
+      el.classList.remove('poke');
+      void el.offsetWidth; // restart animation
+      el.classList.add('poke');
+      say(pick(pokeLines), 2000);
+    });
+
+    // ── Drag ───────────────────────────────────────────────
+    var startX, startY, originRight, originBottom, moved;
+    function onDown(e) {
+      if (e.target === closeBtn) return;
+      var pt = e.touches ? e.touches[0] : e;
+      startX = pt.clientX; startY = pt.clientY;
+      var rect = el.getBoundingClientRect();
+      originRight = window.innerWidth - rect.right;
+      originBottom = window.innerHeight - rect.bottom;
+      moved = false;
+      el.classList.add('dragging');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onUp);
+    }
+    function onMove(e) {
+      var pt = e.touches ? e.touches[0] : e;
+      var dx = pt.clientX - startX;
+      var dy = pt.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      if (e.cancelable) e.preventDefault();
+      var newRight = Math.max(6, originRight - dx);
+      var newBottom = Math.max(6, originBottom - dy);
+      el.style.right = newRight + 'px';
+      el.style.bottom = newBottom + 'px';
+    }
+    function onUp() {
+      el.classList.remove('dragging');
+      el._dragged = moved;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    }
+    el.addEventListener('mousedown', onDown);
+    el.addEventListener('touchstart', onDown, { passive: true });
+
+    // ── Close ──────────────────────────────────────────────
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      say('那我先休息啦 zzZ', 1200);
+      setTimeout(function() {
+        el.classList.add('hidden');
+        localStorage.setItem('dss_companion_hidden', '1');
+      }, 700);
+    });
+  })();
+</script>
