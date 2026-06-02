@@ -1,45 +1,86 @@
 ---
-// DSS Companion — a little floating robot with idle animation,
-// mouse tracking, speech bubbles, drag & close.
+// DSS Companion — a polished floating robot with idle animation,
+// mouse tracking, speech bubbles & drag.
 ---
 
 <div id="dssCompanion" class="companion" aria-hidden="true">
   <!-- Speech bubble -->
   <div id="companionBubble" class="companion-bubble"></div>
 
-  <!-- Close button -->
-  <button id="companionClose" class="companion-close" title="让它休息">×</button>
-
   <!-- Robot SVG -->
   <div id="companionBody" class="companion-body">
-    <svg width="84" height="100" viewBox="0 0 84 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Antenna -->
-      <line x1="42" y1="14" x2="42" y2="4" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
-      <circle id="antennaLight" cx="42" cy="4" r="3.5" fill="#22d3ee"/>
+    <svg width="128" height="150" viewBox="0 0 128 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#eef6f8"/>
+        </linearGradient>
+        <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#e8f3f6"/>
+        </linearGradient>
+        <radialGradient id="visorGrad" cx="50%" cy="35%" r="75%">
+          <stop offset="0%"  stop-color="#1e3a5f"/>
+          <stop offset="55%" stop-color="#0f172a"/>
+          <stop offset="100%" stop-color="#060b18"/>
+        </radialGradient>
+        <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"  stop-color="#22d3ee"/>
+          <stop offset="100%" stop-color="#0891b2"/>
+        </linearGradient>
+        <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0891b2" flood-opacity="0.18"/>
+        </filter>
+        <filter id="eyeGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="1.8" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
 
-      <!-- Body -->
-      <rect x="18" y="52" width="48" height="40" rx="14" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
-      <rect x="27" y="62" width="30" height="3" rx="1.5" fill="#e5e7eb"/>
-      <rect x="27" y="69" width="20" height="3" rx="1.5" fill="#e5e7eb"/>
+      <!-- Ground shadow -->
+      <ellipse id="groundShadow" cx="64" cy="142" rx="30" ry="6" fill="#0891b2" opacity="0.12"/>
 
-      <!-- Arms -->
-      <rect class="arm arm-left" x="8" y="58" width="9" height="22" rx="4.5" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
-      <rect class="arm arm-right" x="67" y="58" width="9" height="22" rx="4.5" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+      <g filter="url(#softShadow)">
+        <!-- Antenna -->
+        <line x1="64" y1="20" x2="64" y2="7" stroke="url(#accentGrad)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle id="antennaLight" cx="64" cy="6" r="4.5" fill="#22d3ee"/>
+        <circle cx="64" cy="6" r="8" fill="#22d3ee" opacity="0.25"/>
 
-      <!-- Head -->
-      <rect x="16" y="14" width="52" height="40" rx="16" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
-      <!-- Visor / screen -->
-      <rect x="22" y="22" width="40" height="24" rx="11" fill="#0f172a"/>
+        <!-- Body -->
+        <rect x="26" y="78" width="76" height="58" rx="22" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
+        <!-- Chest panel -->
+        <rect x="42" y="92" width="44" height="30" rx="10" fill="#f8fbfc" stroke="#cfe6ec" stroke-width="1.5"/>
+        <circle id="chestCore" cx="64" cy="107" r="7" fill="url(#accentGrad)"/>
+        <circle cx="64" cy="107" r="11" fill="#22d3ee" opacity="0.15"/>
 
-      <!-- Eyes (pupils move) -->
-      <g id="eyes">
-        <circle id="eyeL" cx="34" cy="34" r="4.5" fill="#22d3ee"/>
-        <circle id="eyeR" cx="50" cy="34" r="4.5" fill="#22d3ee"/>
+        <!-- Arms -->
+        <rect class="arm arm-left"  x="12" y="86" width="13" height="32" rx="6.5" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
+        <rect class="arm arm-right" x="103" y="86" width="13" height="32" rx="6.5" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
+
+        <!-- Head -->
+        <rect x="22" y="22" width="84" height="60" rx="24" fill="url(#headGrad)" stroke="#0891b2" stroke-width="2.5"/>
+        <!-- Side ears -->
+        <rect x="16" y="42" width="8" height="18" rx="4" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+        <rect x="104" y="42" width="8" height="18" rx="4" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+
+        <!-- Visor -->
+        <rect x="32" y="32" width="64" height="40" rx="18" fill="url(#visorGrad)"/>
+        <rect x="32" y="32" width="64" height="40" rx="18" fill="none" stroke="#0891b2" stroke-width="1.5" opacity="0.4"/>
+        <!-- Visor top highlight -->
+        <ellipse cx="64" cy="42" rx="26" ry="8" fill="#ffffff" opacity="0.06"/>
+
+        <!-- Eyes -->
+        <g id="eyes" filter="url(#eyeGlow)">
+          <circle id="eyeL" cx="52" cy="52" r="6.5" fill="#22d3ee"/>
+          <circle id="eyeR" cx="76" cy="52" r="6.5" fill="#22d3ee"/>
+          <circle id="glintL" cx="54" cy="49.5" r="1.8" fill="#ffffff"/>
+          <circle id="glintR" cx="78" cy="49.5" r="1.8" fill="#ffffff"/>
+        </g>
+
+        <!-- Cheeks -->
+        <circle cx="40" cy="63" r="3.5" fill="#22d3ee" opacity="0.3"/>
+        <circle cx="88" cy="63" r="3.5" fill="#22d3ee" opacity="0.3"/>
       </g>
-
-      <!-- Cheeks -->
-      <circle cx="24" cy="42" r="2.5" fill="#22d3ee" opacity="0.35"/>
-      <circle cx="60" cy="42" r="2.5" fill="#22d3ee" opacity="0.35"/>
     </svg>
   </div>
 </div>
@@ -47,11 +88,11 @@
 <style>
   .companion {
     position: fixed;
-    right: 28px;
-    bottom: 28px;
+    right: 32px;
+    bottom: 24px;
     z-index: 90;
-    width: 84px;
-    height: 100px;
+    width: 128px;
+    height: 150px;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -63,57 +104,77 @@
   .companion-body {
     width: 100%;
     height: 100%;
-    animation: companionFloat 3.5s ease-in-out infinite;
+    animation: companionFloat 3.6s ease-in-out infinite;
     transform-origin: center bottom;
-    transition: transform 0.15s ease;
   }
   .companion.dragging .companion-body { animation: none; }
-  .companion.poke .companion-body { animation: companionPoke 0.5s ease; }
+  .companion.poke .companion-body { animation: companionPoke 0.55s cubic-bezier(.36,.07,.19,.97); }
 
   @keyframes companionFloat {
-    0%, 100% { transform: translateY(0) rotate(-1deg); }
-    50%      { transform: translateY(-8px) rotate(1deg); }
+    0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+    50%      { transform: translateY(-10px) rotate(1.5deg); }
   }
   @keyframes companionPoke {
     0%   { transform: translateY(0) scale(1); }
-    30%  { transform: translateY(4px) scale(1.08, 0.92); }
-    60%  { transform: translateY(-6px) scale(0.95, 1.05); }
+    25%  { transform: translateY(6px) scale(1.1, 0.9); }
+    55%  { transform: translateY(-9px) scale(0.93, 1.07); }
     100% { transform: translateY(0) scale(1); }
+  }
+
+  /* Ground shadow breathes with float */
+  #groundShadow { animation: shadowPulse 3.6s ease-in-out infinite; transform-origin: center; }
+  @keyframes shadowPulse {
+    0%, 100% { opacity: 0.14; transform: scale(1); }
+    50%      { opacity: 0.07; transform: scale(0.8); }
   }
 
   /* Antenna blink */
   #antennaLight { animation: antennaBlink 2.4s ease-in-out infinite; }
   @keyframes antennaBlink {
     0%, 100% { opacity: 1; }
-    50%      { opacity: 0.25; }
+    50%      { opacity: 0.3; }
+  }
+
+  /* Chest core pulse */
+  #chestCore { animation: corePulse 2s ease-in-out infinite; transform-origin: 64px 107px; }
+  @keyframes corePulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
   }
 
   /* Arms gentle sway */
-  .arm-left  { transform-origin: 12px 60px; animation: armSwayL 4s ease-in-out infinite; }
-  .arm-right { transform-origin: 71px 60px; animation: armSwayR 4s ease-in-out infinite; }
-  @keyframes armSwayL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-8deg)} }
-  @keyframes armSwayR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(8deg)} }
+  .arm-left  { transform-origin: 18px 90px; animation: armSwayL 4.2s ease-in-out infinite; }
+  .arm-right { transform-origin: 109px 90px; animation: armSwayR 4.2s ease-in-out infinite; }
+  @keyframes armSwayL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-7deg)} }
+  @keyframes armSwayR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(7deg)} }
+
+  /* Eyes blink */
+  #eyes { animation: eyeBlink 5s infinite; transform-origin: center; }
+  @keyframes eyeBlink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(0.1); }
+  }
 
   /* Speech bubble */
   .companion-bubble {
     position: absolute;
     bottom: 100%;
-    right: 0;
-    margin-bottom: 10px;
-    max-width: 200px;
+    right: 8px;
+    margin-bottom: 12px;
+    max-width: 220px;
     width: max-content;
-    padding: 9px 13px;
+    padding: 11px 15px;
     background: #fff;
-    border: 1px solid var(--accent-border, rgba(8,145,178,0.2));
-    border-radius: 12px;
-    font-size: 12.5px;
-    line-height: 1.5;
+    border: 1px solid rgba(8,145,178,0.22);
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
     color: #374151;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 30px rgba(8,145,178,0.14);
     opacity: 0;
-    transform: translateY(6px) scale(0.95);
+    transform: translateY(8px) scale(0.92);
     transform-origin: bottom right;
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(.34,1.56,.64,1);
     pointer-events: none;
   }
   .companion-bubble.show { opacity: 1; transform: translateY(0) scale(1); }
@@ -121,39 +182,16 @@
     content: '';
     position: absolute;
     bottom: -6px;
-    right: 24px;
-    width: 10px; height: 10px;
+    right: 30px;
+    width: 11px; height: 11px;
     background: #fff;
-    border-right: 1px solid rgba(8,145,178,0.2);
-    border-bottom: 1px solid rgba(8,145,178,0.2);
+    border-right: 1px solid rgba(8,145,178,0.22);
+    border-bottom: 1px solid rgba(8,145,178,0.22);
     transform: rotate(45deg);
   }
 
-  /* Close button */
-  .companion-close {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #9ca3af;
-    font-size: 13px;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease, color 0.15s, border-color 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-  }
-  .companion:hover .companion-close { opacity: 1; }
-  .companion-close:hover { color: #ef4444; border-color: rgba(239,68,68,0.3); }
-
   @media (max-width: 640px) {
-    .companion { right: 14px; bottom: 14px; transform: scale(0.85); transform-origin: bottom right; }
+    .companion { right: 16px; bottom: 16px; transform: scale(0.8); transform-origin: bottom right; }
   }
 </style>
 
@@ -162,27 +200,22 @@
     var el = document.getElementById('dssCompanion');
     if (!el) return;
 
-    // Respect closed state
-    if (localStorage.getItem('dss_companion_hidden') === '1') {
-      el.classList.add('hidden');
-      return;
-    }
-
     var body = document.getElementById('companionBody');
     var bubble = document.getElementById('companionBubble');
-    var closeBtn = document.getElementById('companionClose');
     var eyeL = document.getElementById('eyeL');
     var eyeR = document.getElementById('eyeR');
+    var glintL = document.getElementById('glintL');
+    var glintR = document.getElementById('glintR');
 
-    var baseEyes = [{ x: 34, y: 34 }, { x: 50, y: 34 }];
-    var maxShift = 2.6;
+    var baseEyes = [{ x: 52, y: 52 }, { x: 76, y: 52 }];
+    var maxShift = 3.4;
 
     // ── Eyes follow mouse ──────────────────────────────────
     document.addEventListener('mousemove', function(e) {
       if (el.classList.contains('dragging')) return;
       var rect = el.getBoundingClientRect();
       var cx = rect.left + rect.width / 2;
-      var cy = rect.top + rect.height * 0.34;
+      var cy = rect.top + rect.height * 0.35;
       var dx = e.clientX - cx;
       var dy = e.clientY - cy;
       var dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -192,6 +225,10 @@
       eyeL.setAttribute('cy', baseEyes[0].y + sy);
       eyeR.setAttribute('cx', baseEyes[1].x + sx);
       eyeR.setAttribute('cy', baseEyes[1].y + sy);
+      glintL.setAttribute('cx', baseEyes[0].x + sx + 2);
+      glintL.setAttribute('cy', baseEyes[0].y + sy - 2.5);
+      glintR.setAttribute('cx', baseEyes[1].x + sx + 2);
+      glintR.setAttribute('cy', baseEyes[1].y + sy - 2.5);
     });
 
     // ── Speech bubbles ─────────────────────────────────────
@@ -221,25 +258,21 @@
       clearTimeout(bubbleTimer);
       bubbleTimer = setTimeout(function() {
         bubble.classList.remove('show');
-      }, duration || 3200);
+      }, duration || 3400);
     }
-
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-    // Greet on load
     setTimeout(function() { say(idleLines[2]); }, 1200);
-
-    // Random idle chatter
     setInterval(function() {
       if (el.classList.contains('dragging')) return;
       if (Math.random() < 0.5) say(pick(idleLines));
     }, 14000);
 
     // ── Click / poke reaction ──────────────────────────────
-    body.addEventListener('click', function(e) {
+    body.addEventListener('click', function() {
       if (el._dragged) { el._dragged = false; return; }
       el.classList.remove('poke');
-      void el.offsetWidth; // restart animation
+      void el.offsetWidth;
       el.classList.add('poke');
       say(pick(pokeLines), 2000);
     });
@@ -247,7 +280,6 @@
     // ── Drag ───────────────────────────────────────────────
     var startX, startY, originRight, originBottom, moved;
     function onDown(e) {
-      if (e.target === closeBtn) return;
       var pt = e.touches ? e.touches[0] : e;
       startX = pt.clientX; startY = pt.clientY;
       var rect = el.getBoundingClientRect();
@@ -266,10 +298,8 @@
       var dy = pt.clientY - startY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
       if (e.cancelable) e.preventDefault();
-      var newRight = Math.max(6, originRight - dx);
-      var newBottom = Math.max(6, originBottom - dy);
-      el.style.right = newRight + 'px';
-      el.style.bottom = newBottom + 'px';
+      el.style.right = Math.max(6, originRight - dx) + 'px';
+      el.style.bottom = Math.max(6, originBottom - dy) + 'px';
     }
     function onUp() {
       el.classList.remove('dragging');
@@ -281,15 +311,5 @@
     }
     el.addEventListener('mousedown', onDown);
     el.addEventListener('touchstart', onDown, { passive: true });
-
-    // ── Close ──────────────────────────────────────────────
-    closeBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      say('那我先休息啦 zzZ', 1200);
-      setTimeout(function() {
-        el.classList.add('hidden');
-        localStorage.setItem('dss_companion_hidden', '1');
-      }, 700);
-    });
   })();
 </script>
