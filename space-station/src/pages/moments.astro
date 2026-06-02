@@ -128,85 +128,66 @@ const moods = ['⚡', '🛸', '💡', '🔧', '📡', '☕', '🌙', '📦', '�
     return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
   }
 
-  // Reload moments with user's own data
-  if (window.__dss_isLoggedIn && window.__dss_isLoggedIn()) {
-    // Moments data is server-rendered with public API (empty for non-admin)
-    // Client-side fetch user's own moments
-    fetch(API + '/api/moments?page=1&size=50', {
-      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      // Page will work with existing data for admin, for other users we'd need to re-render
-      // For now the server-rendered data works for admin
-    });
-  }
-
-  // (rest of script below uses getToken() which now returns the stored token)
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: 'admin123' })
-    });
-    const data = await res.json();
-    token = data.token;
-    return token;
-  }
-
   // Toggle form
-  const form = document.getElementById('composeForm')!;
-  const toggleBtn = document.getElementById('toggleForm')!;
-  const cancelBtn = document.getElementById('cancelBtn')!;
-  const publishBtn = document.getElementById('publishBtn')!;
-  const textarea = document.getElementById('momentText') as HTMLTextAreaElement;
-  const charCount = document.getElementById('charCount')!;
+  var form = document.getElementById('composeForm');
+  var toggleBtn = document.getElementById('toggleForm');
+  var cancelBtn = document.getElementById('cancelBtn');
+  var publishBtn = document.getElementById('publishBtn');
+  var textarea = document.getElementById('momentText');
+  var charCount = document.getElementById('charCount');
 
-  toggleBtn.addEventListener('click', () => {
-    form.classList.toggle('hidden');
-    if (!form.classList.contains('hidden')) textarea.focus();
-  });
-  cancelBtn.addEventListener('click', () => form.classList.add('hidden'));
-
-  textarea.addEventListener('input', () => {
-    charCount.textContent = `${textarea.value.length} 字`;
-  });
-
-  // Mood selection
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    if ((btn as HTMLElement).dataset.mood === selectedMood) btn.classList.add('active');
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedMood = (btn as HTMLElement).dataset.mood || '⚡';
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) textarea.focus();
     });
-  });
+    cancelBtn.addEventListener('click', function() { form.classList.add('hidden'); });
 
-  // Publish
-  publishBtn.addEventListener('click', async () => {
-    const text = textarea.value.trim();
-    if (!text) return;
-    publishBtn.textContent = '发布中...';
-    try {
-      const t = await getToken();
-      await fetch(`${API}/api/admin/moments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
-        body: JSON.stringify({ text, mood: selectedMood, images: [] })
+    textarea.addEventListener('input', function() {
+      charCount.textContent = textarea.value.length + ' 字';
+    });
+
+    // Mood selection
+    document.querySelectorAll('.mood-btn').forEach(function(btn) {
+      if (btn.dataset.mood === selectedMood) btn.classList.add('active');
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.mood-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        selectedMood = btn.dataset.mood || '⚡';
       });
-      location.reload();
-    } catch (e) {
-      alert('发布失败');
-      publishBtn.textContent = '发布';
-    }
-  });
+    });
+
+    // Publish
+    publishBtn.addEventListener('click', function() {
+      var text = textarea.value.trim();
+      if (!text) return;
+      publishBtn.textContent = '发布中...';
+      getToken().then(function(t) {
+        return fetch(API + '/api/moments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+          body: JSON.stringify({ text: text, mood: selectedMood, images: [] })
+        });
+      }).then(function() {
+        location.reload();
+      }).catch(function() {
+        alert('发布失败');
+        publishBtn.textContent = '发布';
+      });
+    });
+  }
 
   // Delete
-  document.querySelectorAll('.del-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+  document.querySelectorAll('.del-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
       if (!confirm('确认删除？')) return;
-      const id = (btn as HTMLElement).dataset.id;
-      const t = await getToken();
-      await fetch(`${API}/api/admin/moments/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${t}` }
-      });
-      location.reload();
+      var id = btn.dataset.id;
+      getToken().then(function(t) {
+        return fetch(API + '/api/moments/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + t }
+        });
+      }).then(function() { location.reload(); });
     });
   });
 </script>
