@@ -1,16 +1,7 @@
 ---
+// Static shell — post list is fetched client-side for instant load.
+export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
-
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
-let posts: any[] = [];
-
-try {
-  const res = await fetch(`${API_URL}/api/public/posts?page=1&size=50`);
-  const data = await res.json();
-  posts = data.items || [];
-} catch (e) {
-  console.error('Failed to fetch posts:', e);
-}
 
 const categories = [
   { key: 'all',    label: '全部文章', icon: '◎' },
@@ -118,35 +109,11 @@ const categories = [
         </div>
       </div>
 
-      <!-- 文章列表 -->
+      <!-- 文章列表 (client-filled) -->
       <div id="postList" class="post-list">
-        {posts.length > 0 ? (
-          posts.map((post: any) => (
-            <div
-              class="post-card"
-              data-tags={JSON.stringify(post.tags || [])}
-            >
-              <div class="post-card-top">
-                <div class="post-tags">
-                  {(post.tags || []).map((tag: string) => (
-                    <span class="post-tag">{tag}</span>
-                  ))}
-                </div>
-                <button class="del-post-btn" data-id={post.id} title="删除">✕</button>
-              </div>
-              <a href={`/blog/${post.slug}`} class="post-link">
-                <h3 class="post-title">{post.title}</h3>
-                <p class="post-excerpt">{post.excerpt}</p>
-                <div class="post-meta">
-                  <time>{post.created_at?.split('T')[0] || ''}</time>
-                  <span>{post.read_time || ''} →</span>
-                </div>
-              </a>
-            </div>
-          ))
-        ) : (
-          <p class="empty">暂无文章</p>
-        )}
+        <div class="post-skeleton"></div>
+        <div class="post-skeleton"></div>
+        <div class="post-skeleton"></div>
       </div>
 
     </main>
@@ -401,6 +368,18 @@ const categories = [
     font-family: 'DM Mono', monospace;
     font-size: 13px;
   }
+  .post-skeleton {
+    height: 116px;
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+    background: linear-gradient(100deg, #f3f4f6 30%, #fafafa 50%, #f3f4f6 70%);
+    background-size: 200% 100%;
+    animation: postShimmer 1.3s ease-in-out infinite;
+  }
+  @keyframes postShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 </style>
 
 <script is:inline>
@@ -411,49 +390,73 @@ const categories = [
     return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
   }
 
-  // Hide write/delete buttons for guests
-  if (!loggedIn) {
-    document.querySelectorAll('.write-btn, .del-post-btn').forEach(function(el) { el.style.display = 'none'; });
-  }
-
-  // Guest: block article links, show login prompt
-  if (!loggedIn) {
-    document.querySelectorAll('.post-link').forEach(function(el) {
-      el.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.__dss_toggleLogin) window.__dss_toggleLogin();
-      });
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
     });
   }
 
-  // Logged in: reload with user's own posts
-  if (loggedIn) {
-    fetch(API + '/api/posts?page=1&size=50', {
-      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      var items = data.items || [];
-      var listEl = document.getElementById('postList');
-      if (!listEl) return;
-      if (items.length === 0) {
-        listEl.innerHTML = '<p class="empty">暂无文章，点击左侧「+ 写文章」开始创作</p>';
-        return;
-      }
-      listEl.innerHTML = items.map(function(post) {
-        var tagsHtml = (post.tags || []).map(function(t) {
-          return '<span class="post-tag">' + t + '</span>';
-        }).join('');
-        return '<div class="post-card" data-tags=\'' + JSON.stringify(post.tags || []) + '\'>' +
-          '<div class="post-card-top"><div class="post-tags">' + tagsHtml + '</div>' +
-          '<button class="del-post-btn" data-id="' + post.id + '" title="删除">✕</button></div>' +
-          '<a href="/blog/' + post.slug + '" class="post-link">' +
-          '<h3 class="post-title">' + post.title + '</h3>' +
-          '<p class="post-excerpt">' + (post.excerpt || '') + '</p>' +
-          '<div class="post-meta"><time>' + (post.created_at || '').split('T')[0] + '</time>' +
-          '<span>' + (post.read_time || '') + ' →</span></div></a></div>';
-      }).join('');
+  // Hide write button for guests
+  if (!loggedIn) {
+    document.querySelectorAll('.write-btn').forEach(function(el) { el.style.display = 'none'; });
+  }
 
-      // Re-bind delete
-      document.querySelectorAll('.del-post-btn').forEach(function(btn) {
+  var params = new URLSearchParams(window.location.search);
+  var activeCat = params.get('cat') || 'all';
+  var activeTag = params.get('tag') || '';
+  var pageTitle = document.getElementById('pageTitle');
+  var postCount = document.getElementById('postCount');
+
+  document.querySelectorAll('.cat-link').forEach(function(el) {
+    if (el.dataset.cat === activeCat) el.classList.add('active');
+  });
+  document.querySelectorAll('.tag-item').forEach(function(el) {
+    if (el.dataset.tag === activeTag) el.classList.add('active');
+  });
+  if (activeCat !== 'all') pageTitle.innerHTML = esc(activeCat) + ' <span class="title-dot"></span>';
+  if (activeTag) pageTitle.innerHTML = '# ' + esc(activeTag) + ' <span class="title-dot"></span>';
+
+  // Build one card. isOwner → show delete; guest → block link to login.
+  function cardHtml(post, isOwner) {
+    var tagsHtml = (post.tags || []).map(function(t) {
+      return '<span class="post-tag">' + esc(t) + '</span>';
+    }).join('');
+    var delBtn = isOwner ? '<button class="del-post-btn" data-id="' + post.id + '" title="删除">✕</button>' : '';
+    return '<div class="post-card" data-tags=\'' + JSON.stringify(post.tags || []) + '\'>' +
+      '<div class="post-card-top"><div class="post-tags">' + tagsHtml + '</div>' + delBtn + '</div>' +
+      '<a href="/blog/' + esc(post.slug) + '" class="post-link">' +
+      '<h3 class="post-title">' + esc(post.title) + '</h3>' +
+      '<p class="post-excerpt">' + esc(post.excerpt || '') + '</p>' +
+      '<div class="post-meta"><time>' + esc((post.created_at || '').split('T')[0]) + '</time>' +
+      '<span>' + esc(post.read_time || '') + ' →</span></div></a></div>';
+  }
+
+  function renderPosts(items, isOwner) {
+    var listEl = document.getElementById('postList');
+    if (!listEl) return;
+    if (!items.length) {
+      listEl.innerHTML = '<p class="empty">' +
+        (isOwner ? '暂无文章，点击左侧「+ 写文章」开始创作' : '暂无文章') + '</p>';
+      if (postCount) postCount.textContent = '0 篇';
+      return;
+    }
+    listEl.innerHTML = items.map(function(p) { return cardHtml(p, isOwner); }).join('');
+
+    // Filter by category / tag
+    var visible = 0;
+    listEl.querySelectorAll('.post-card').forEach(function(el) {
+      var tags = JSON.parse(el.dataset.tags || '[]');
+      var show = true;
+      if (activeCat !== 'all' && tags.indexOf(activeCat) === -1) show = false;
+      if (activeTag && tags.indexOf(activeTag) === -1) show = false;
+      el.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (postCount) postCount.textContent = visible + ' 篇';
+
+    if (isOwner) {
+      // Bind delete
+      listEl.querySelectorAll('.del-post-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
           e.stopPropagation(); e.preventDefault();
           if (!confirm('确认删除？')) return;
@@ -464,41 +467,33 @@ const categories = [
           }).then(function() { location.reload(); });
         });
       });
-
-      // Re-run filter
-      var pc = document.getElementById('postCount');
-      if (pc) pc.textContent = items.length + ' 篇';
-    });
+    } else {
+      // Guest: block article links → login prompt
+      listEl.querySelectorAll('.post-link').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.__dss_toggleLogin) window.__dss_toggleLogin();
+        });
+      });
+    }
   }
 
-  // Filter
-  var params = new URLSearchParams(window.location.search);
-  var activeCat = params.get('cat') || 'all';
-  var activeTag = params.get('tag') || '';
-
-  document.querySelectorAll('.cat-link').forEach(function(el) {
-    if (el.dataset.cat === activeCat) el.classList.add('active');
-  });
-  document.querySelectorAll('.tag-item').forEach(function(el) {
-    if (el.dataset.tag === activeTag) el.classList.add('active');
-  });
-
-  var pageTitle = document.getElementById('pageTitle');
-  var postCount = document.getElementById('postCount');
-  var visible = 0;
-
-  document.querySelectorAll('.post-card').forEach(function(el) {
-    var tags = JSON.parse(el.dataset.tags || '[]');
-    var show = true;
-    if (activeCat !== 'all' && tags.indexOf(activeCat) === -1) show = false;
-    if (activeTag && tags.indexOf(activeTag) === -1) show = false;
-    el.style.display = show ? '' : 'none';
-    if (show) visible++;
-  });
-
-  if (activeCat !== 'all') pageTitle.innerHTML = activeCat + ' <span class="title-dot"></span>';
-  if (activeTag) pageTitle.innerHTML = '# ' + activeTag + ' <span class="title-dot"></span>';
-  postCount.textContent = visible + ' 篇';
+  // Load posts: own posts if logged in, otherwise public
+  if (loggedIn) {
+    fetch(API + '/api/posts?page=1&size=50', {
+      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
+    }).then(function(r) { return r.json(); })
+      .then(function(data) { renderPosts((data && data.items) || [], true); })
+      .catch(function() { renderPosts([], true); });
+  } else {
+    fetch(API + '/api/public/posts?page=1&size=50')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderPosts((data && data.items) || [], false); })
+      .catch(function() {
+        var listEl = document.getElementById('postList');
+        if (listEl) listEl.innerHTML = '<p class="empty">内容加载中，稍后刷新试试…</p>';
+      });
+  }
 
   // Editor
   var panel = document.getElementById('editorPanel');
@@ -586,22 +581,6 @@ const categories = [
     }).catch(function() {
       alert('发布失败');
       btn.textContent = '发布';
-    });
-  });
-
-  // Delete posts
-  document.querySelectorAll('.del-post-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      if (!confirm('确认删除这篇文章？')) return;
-      var id = btn.dataset.id;
-      getToken().then(function(t) {
-        return fetch(API + '/api/posts/' + id, {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + t }
-        });
-      }).then(function() { location.reload(); });
     });
   });
 </script>
