@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 let milestones: any[] = [];
 
 const cookieHeader = Astro.request.headers.get('cookie') || '';
@@ -274,7 +274,7 @@ try {
     document.querySelector('section').innerHTML = '<div style="text-align:center;padding:100px 0;color:#9ca3af;"><p style="font-size:16px;margin-bottom:12px;">需要登录后访问</p><button onclick="window.__dss_toggleLogin()" style="padding:8px 20px;background:#0891b2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">登录</button></div>';
   }
 
-  var API = 'http://localhost:8080';
+  var API = window.__DSS_API;
 
   function getToken() {
     return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');

@@ -6,6 +6,7 @@ interface Props {
   description?: string;
 }
 const { title, description = '个人数字空间站 · 探索、记录与代码' } = Astro.props;
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 
 const navLinks = [
   { href: '/blog',       label: '博客',   code: '01' },
@@ -78,6 +79,9 @@ const navLinks = [
     .nav-link:hover { color: var(--accent); }
   </style>
   <ViewTransitions />
+
+  <!-- Inject API base URL for client scripts -->
+  <script is:inline set:html={`window.__DSS_API = ${JSON.stringify(API_URL)};`}></script>
 
   <!-- Auth init: must be in <head> so page scripts can access it synchronously -->
   <script is:inline>
@@ -185,7 +189,7 @@ const navLinks = [
   </footer>
 
   <script is:inline>
-    var DSS_API = 'http://localhost:8080';
+    var DSS_API = window.__DSS_API;
 
     // Update auth button + admin nav
     function updateAuthBtn() {

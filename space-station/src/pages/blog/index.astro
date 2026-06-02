@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 let posts: any[] = [];
 
 try {
@@ -404,7 +404,7 @@ const categories = [
 </style>
 
 <script is:inline>
-  var API = 'http://localhost:8080';
+  var API = window.__DSS_API;
   var loggedIn = window.__dss_isLoggedIn && window.__dss_isLoggedIn();
 
   function getToken() {

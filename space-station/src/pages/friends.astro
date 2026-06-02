@@ -104,7 +104,7 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script is:inline>
-  var API = 'http://localhost:8080';
+  var API = window.__DSS_API;
   var isAdmin = window.__dss_isLoggedIn && window.__dss_isLoggedIn() && window.__dss_getRole() === 'admin';
 
   if (!isAdmin) {

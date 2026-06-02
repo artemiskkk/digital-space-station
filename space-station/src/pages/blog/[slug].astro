@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { marked } from 'marked';
 
-const API_URL = import.meta.env.API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 const { slug } = Astro.params;
 
 // Read auth token from cookie (set on login) to access drafts/private posts

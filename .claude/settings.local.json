@@ -12,7 +12,12 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(curl -s https://digital-space-station.onrender.com/health)",
+      "Bash(npm install *)"
     ]
   }
 }
