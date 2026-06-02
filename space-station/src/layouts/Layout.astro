@@ -1,5 +1,4 @@
 ---
-import { ViewTransitions } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -78,7 +77,6 @@ const navLinks = [
     .nav-link:hover::after { width: 100%; }
     .nav-link:hover { color: var(--accent); }
   </style>
-  <ViewTransitions />
 
   <!-- Inject API base URL for client scripts -->
   <script is:inline set:html={`window.__DSS_API = ${JSON.stringify(API_URL)};`}></script>
