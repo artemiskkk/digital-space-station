@@ -103,6 +103,17 @@
     padding: 0 24px;
     max-width: 900px;
   }
+  /* Soft white halo so text stays readable over the sphere */
+  .hero-content::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 760px; height: 560px;
+    background: radial-gradient(ellipse at center, rgba(250,250,250,0.9) 0%, rgba(250,250,250,0.6) 38%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+  }
 
   .hero-badge {
     display: inline-flex;
@@ -275,7 +286,7 @@
   if (canvas && window.WebGLRenderingContext) {
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-    camera.position.z = 3.4;
+    camera.position.z = 5.2;
 
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
     renderer.setClearColor(0x000000, 0);
@@ -289,19 +300,19 @@
     }
 
     // Morphing wireframe sphere (wireframe material = cheap to morph)
-    var geo = new THREE.IcosahedronGeometry(1.18, 4);
+    var geo = new THREE.IcosahedronGeometry(1.18, 3);
     var basePos = geo.attributes.position.array.slice(0);
     var pos = geo.attributes.position;
 
     var wire = new THREE.Mesh(
       geo,
-      new THREE.MeshBasicMaterial({ color: 0x0891b2, wireframe: true, transparent: true, opacity: 0.22 })
+      new THREE.MeshBasicMaterial({ color: 0x0891b2, wireframe: true, transparent: true, opacity: 0.13 })
     );
 
     // Bright points on vertices (share the morphing position buffer)
     var points = new THREE.Points(
       geo,
-      new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.04, transparent: true, opacity: 0.7 })
+      new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.03, transparent: true, opacity: 0.55 })
     );
 
     var group = new THREE.Group();
