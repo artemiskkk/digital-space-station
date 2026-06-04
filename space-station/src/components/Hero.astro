@@ -57,28 +57,34 @@
   .hero {
     position: relative;
     min-height: 100vh;
+    margin-top: -3.5rem; /* pull under the fixed nav (cancels main's pt-14) */
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #0a0a0c;
+    background: #050506;
   }
 
   .hero-visual {
     position: absolute;
     inset: 0;
     z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .hero-visual img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 38%;
+    width: min(64vw, 760px);
+    height: auto;
+    object-fit: contain;
+    transform: translateY(-4%);
     animation: heroVisualFloat 14s ease-in-out infinite;
+    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 55%, transparent 90%);
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 55%, transparent 90%);
   }
   @keyframes heroVisualFloat {
-    0%, 100% { transform: scale(1.04) translateY(0); }
-    50%      { transform: scale(1.07) translateY(-12px); }
+    0%, 100% { transform: translateY(-4%) scale(1); }
+    50%      { transform: translateY(calc(-4% - 12px)) scale(1.03); }
   }
 
   /* Darken edges + lower-center for white-text readability */
