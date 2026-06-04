@@ -530,30 +530,31 @@ const categories = [
     postList.style.display = '';
   });
 
-  // Image upload
+  // Image upload — direct to Cloudinary (unsigned)
+  var CLOUDINARY_CLOUD = 'dxxjjw6fy';
+  var CLOUDINARY_PRESET = 'ml_default';
   document.getElementById('imgFileInput').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { alert('图片不能超过 10MB'); e.target.value = ''; return; }
     var btn = document.getElementById('uploadImgBtn');
-    btn.textContent = '上传中...';
+    btn.childNodes[0].textContent = '上传中...';
     var fd = new FormData();
-    fd.append('image', file);
-    getToken().then(function(t) {
-      return fetch(API + '/api/upload/image', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + t },
-        body: fd
-      });
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
+      method: 'POST',
+      body: fd
     }).then(function(r) { return r.json(); }).then(function(data) {
-      if (data.url) {
+      if (data.secure_url) {
         var ta = document.getElementById('postContent');
         var pos = ta.selectionStart;
-        var md = '![](' + data.url + ')';
+        var md = '![](' + data.secure_url + ')';
         ta.value = ta.value.slice(0, pos) + md + ta.value.slice(pos);
         ta.selectionStart = ta.selectionEnd = pos + md.length;
         ta.focus();
       } else {
-        alert(data.error || '上传失败');
+        alert((data.error && data.error.message) || '上传失败');
       }
     }).catch(function() {
       alert('上传失败');
