@@ -299,38 +299,49 @@
       camera.updateProjectionMatrix();
     }
 
-    // Morphing wireframe sphere (wireframe material = cheap to morph)
-    var geo = new THREE.IcosahedronGeometry(1.18, 3);
+    // ── Solid morphing blob ────────────────────────────────
+    var geo = new THREE.IcosahedronGeometry(1.25, 5);
     var basePos = geo.attributes.position.array.slice(0);
     var pos = geo.attributes.position;
 
-    var wire = new THREE.Mesh(
-      geo,
-      new THREE.MeshBasicMaterial({ color: 0x0891b2, wireframe: true, transparent: true, opacity: 0.13 })
-    );
-
-    // Bright points on vertices (share the morphing position buffer)
-    var points = new THREE.Points(
-      geo,
-      new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.03, transparent: true, opacity: 0.55 })
-    );
+    var mat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.28,
+      metalness: 0.12,
+      flatShading: false
+    });
+    var blob = new THREE.Mesh(geo, mat);
 
     var group = new THREE.Group();
-    group.add(wire);
-    group.add(points);
+    group.add(blob);
     scene.add(group);
 
+    // ── Lighting (soft studio look in cyan/white) ──────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+    var keyLight = new THREE.DirectionalLight(0xffffff, 1.7);
+    keyLight.position.set(-3, 4, 4);
+    scene.add(keyLight);
+
+    var rimLight = new THREE.DirectionalLight(0x22d3ee, 1.6);
+    rimLight.position.set(4, -1, 2);
+    scene.add(rimLight);
+
+    var fillLight = new THREE.DirectionalLight(0x0891b2, 0.7);
+    fillLight.position.set(0, -3, -2);
+    scene.add(fillLight);
+
     // Ambient floating dust
-    var dustCount = 70;
+    var dustCount = 60;
     var dustGeo = new THREE.BufferGeometry();
     var dustArr = new Float32Array(dustCount * 3);
     for (var i = 0; i < dustCount; i++) {
-      dustArr[i*3]   = (Math.random() - 0.5) * 7;
-      dustArr[i*3+1] = (Math.random() - 0.5) * 5;
+      dustArr[i*3]   = (Math.random() - 0.5) * 8;
+      dustArr[i*3+1] = (Math.random() - 0.5) * 5.5;
       dustArr[i*3+2] = (Math.random() - 0.5) * 4;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustArr, 3));
-    var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0x0891b2, size: 0.02, transparent: true, opacity: 0.35 }));
+    var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0x0891b2, size: 0.025, transparent: true, opacity: 0.4 }));
     scene.add(dust);
 
     // Mouse parallax
@@ -340,10 +351,13 @@
       tmy = (e.clientY / window.innerHeight - 0.5);
     });
 
-    function noise(x, y, z, t) {
-      return Math.sin(x * 2.2 + t) * 0.5 +
-             Math.sin(y * 2.8 + t * 1.3) * 0.35 +
-             Math.sin(z * 2.5 + t * 0.7) * 0.3;
+    // Smooth multi-octave noise → organic fluid surface
+    function fbm(x, y, z, t) {
+      var n = 0;
+      n += Math.sin(x * 1.5 + t) * Math.cos(y * 1.5 - t * 0.8) * 0.6;
+      n += Math.sin(y * 2.7 + t * 1.2) * Math.cos(z * 2.3 + t) * 0.3;
+      n += Math.sin(z * 4.1 - t * 0.6) * Math.cos(x * 3.7 + t * 0.4) * 0.16;
+      return n;
     }
 
     var clock = new THREE.Clock();
@@ -351,26 +365,27 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      var t = clock.getElapsedTime();
+      var t = clock.getElapsedTime() * 0.45;
 
-      // Morph vertices along their normals
+      // Morph vertices outward along their direction (radial)
       for (var i = 0; i < pos.count; i++) {
         var ix = i * 3;
         var ox = basePos[ix], oy = basePos[ix+1], oz = basePos[ix+2];
         var len = Math.sqrt(ox*ox + oy*oy + oz*oz) || 1;
-        var n = noise(ox/len, oy/len, oz/len, t * 0.6);
-        var disp = 1 + n * 0.09;
-        pos.array[ix]   = ox * disp;
-        pos.array[ix+1] = oy * disp;
-        pos.array[ix+2] = oz * disp;
+        var nx = ox/len, ny = oy/len, nz = oz/len;
+        var disp = 1 + fbm(nx, ny, nz, t) * 0.22;
+        pos.array[ix]   = nx * 1.25 * disp;
+        pos.array[ix+1] = ny * 1.25 * disp;
+        pos.array[ix+2] = nz * 1.25 * disp;
       }
       pos.needsUpdate = true;
+      geo.computeVertexNormals(); // recompute so lighting follows the surface
 
       mx += (tmx - mx) * 0.04;
       my += (tmy - my) * 0.04;
-      group.rotation.y = t * 0.12 + mx * 0.6;
-      group.rotation.x = my * 0.5;
-      dust.rotation.y = t * 0.02;
+      group.rotation.y = t * 0.25 + mx * 0.5;
+      group.rotation.x = my * 0.4;
+      dust.rotation.y = clock.getElapsedTime() * 0.02;
 
       renderer.render(scene, camera);
     }
