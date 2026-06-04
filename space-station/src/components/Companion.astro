@@ -1,85 +1,86 @@
 ---
-// DSS Companion — a polished floating robot with idle animation,
-// mouse tracking, speech bubbles & drag.
+// DSS Companion — a mini satellite probe: floats, sensor tracks the cursor,
+// speaks in bubbles, draggable. Cyan glow, fits the sci-fi theme.
 ---
 
 <div id="dssCompanion" class="companion" aria-hidden="true">
   <!-- Speech bubble -->
   <div id="companionBubble" class="companion-bubble"></div>
 
-  <!-- Robot SVG -->
+  <!-- Satellite SVG -->
   <div id="companionBody" class="companion-body">
-    <svg width="128" height="150" viewBox="0 0 128 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="132" height="120" viewBox="0 0 132 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stop-color="#ffffff"/>
-          <stop offset="100%" stop-color="#eef6f8"/>
+        <linearGradient id="satBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#e6f4f8"/>
         </linearGradient>
-        <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stop-color="#ffffff"/>
-          <stop offset="100%" stop-color="#e8f3f6"/>
+        <linearGradient id="satPanel" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0e7490"/>
+          <stop offset="100%" stop-color="#22d3ee"/>
         </linearGradient>
-        <radialGradient id="visorGrad" cx="50%" cy="35%" r="75%">
-          <stop offset="0%"  stop-color="#1e3a5f"/>
-          <stop offset="55%" stop-color="#0f172a"/>
-          <stop offset="100%" stop-color="#060b18"/>
+        <radialGradient id="satLens" cx="50%" cy="42%" r="60%">
+          <stop offset="0%" stop-color="#1e3a5f"/>
+          <stop offset="60%" stop-color="#0b1220"/>
+          <stop offset="100%" stop-color="#05080f"/>
         </radialGradient>
-        <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"  stop-color="#22d3ee"/>
+        <linearGradient id="satAccent" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#22d3ee"/>
           <stop offset="100%" stop-color="#0891b2"/>
         </linearGradient>
-        <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0891b2" flood-opacity="0.18"/>
+        <filter id="satGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0891b2" flood-opacity="0.30"/>
         </filter>
-        <filter id="eyeGlow" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="1.8" result="b"/>
+        <filter id="lensGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="1.6" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
 
-      <!-- Ground shadow -->
-      <ellipse id="groundShadow" cx="64" cy="142" rx="30" ry="6" fill="#0891b2" opacity="0.12"/>
+      <!-- ground glow -->
+      <ellipse id="satShadow" cx="66" cy="112" rx="30" ry="5" fill="#0891b2" opacity="0.14"/>
 
-      <g filter="url(#softShadow)">
-        <!-- Antenna -->
-        <line x1="64" y1="20" x2="64" y2="7" stroke="url(#accentGrad)" stroke-width="2.5" stroke-linecap="round"/>
-        <circle id="antennaLight" cx="64" cy="6" r="4.5" fill="#22d3ee"/>
-        <circle cx="64" cy="6" r="8" fill="#22d3ee" opacity="0.25"/>
+      <g filter="url(#satGlow)">
+        <!-- Signal antenna -->
+        <line x1="66" y1="30" x2="66" y2="14" stroke="url(#satAccent)" stroke-width="2.4" stroke-linecap="round"/>
+        <circle id="satBeacon" cx="66" cy="11" r="4" fill="#22d3ee"/>
+        <circle cx="66" cy="11" r="8" fill="#22d3ee" opacity="0.22"/>
+
+        <!-- Left solar panel -->
+        <g class="sat-panel sat-panel-l">
+          <rect x="6" y="46" width="30" height="26" rx="3" fill="url(#satPanel)" stroke="#0e7490" stroke-width="1.5"/>
+          <line x1="16" y1="46" x2="16" y2="72" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+          <line x1="26" y1="46" x2="26" y2="72" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+          <line x1="6" y1="59" x2="36" y2="59" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+        </g>
+        <line x1="36" y1="59" x2="44" y2="59" stroke="#94a3b8" stroke-width="2"/>
+
+        <!-- Right solar panel -->
+        <g class="sat-panel sat-panel-r">
+          <rect x="96" y="46" width="30" height="26" rx="3" fill="url(#satPanel)" stroke="#0e7490" stroke-width="1.5"/>
+          <line x1="106" y1="46" x2="106" y2="72" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+          <line x1="116" y1="46" x2="116" y2="72" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+          <line x1="96" y1="59" x2="126" y2="59" stroke="#0b1220" stroke-width="1" opacity="0.4"/>
+        </g>
+        <line x1="88" y1="59" x2="96" y2="59" stroke="#94a3b8" stroke-width="2"/>
 
         <!-- Body -->
-        <rect x="26" y="78" width="76" height="58" rx="22" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
-        <!-- Chest panel -->
-        <rect x="42" y="92" width="44" height="30" rx="10" fill="#f8fbfc" stroke="#cfe6ec" stroke-width="1.5"/>
-        <circle id="chestCore" cx="64" cy="107" r="7" fill="url(#accentGrad)"/>
-        <circle cx="64" cy="107" r="11" fill="#22d3ee" opacity="0.15"/>
+        <rect x="44" y="38" width="44" height="46" rx="11" fill="url(#satBody)" stroke="#0891b2" stroke-width="2"/>
+        <!-- side detail lights -->
+        <circle cx="51" cy="46" r="1.6" fill="#22d3ee"/>
+        <circle cx="81" cy="46" r="1.6" fill="#22d3ee" opacity="0.6"/>
 
-        <!-- Arms -->
-        <rect class="arm arm-left"  x="12" y="86" width="13" height="32" rx="6.5" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
-        <rect class="arm arm-right" x="103" y="86" width="13" height="32" rx="6.5" fill="url(#bodyGrad)" stroke="#0891b2" stroke-width="2.5"/>
-
-        <!-- Head -->
-        <rect x="22" y="22" width="84" height="60" rx="24" fill="url(#headGrad)" stroke="#0891b2" stroke-width="2.5"/>
-        <!-- Side ears -->
-        <rect x="16" y="42" width="8" height="18" rx="4" fill="#fff" stroke="#0891b2" stroke-width="2"/>
-        <rect x="104" y="42" width="8" height="18" rx="4" fill="#fff" stroke="#0891b2" stroke-width="2"/>
-
-        <!-- Visor -->
-        <rect x="32" y="32" width="64" height="40" rx="18" fill="url(#visorGrad)"/>
-        <rect x="32" y="32" width="64" height="40" rx="18" fill="none" stroke="#0891b2" stroke-width="1.5" opacity="0.4"/>
-        <!-- Visor top highlight -->
-        <ellipse cx="64" cy="42" rx="26" ry="8" fill="#ffffff" opacity="0.06"/>
-
-        <!-- Eyes -->
-        <g id="eyes" filter="url(#eyeGlow)">
-          <circle id="eyeL" cx="52" cy="52" r="6.5" fill="#22d3ee"/>
-          <circle id="eyeR" cx="76" cy="52" r="6.5" fill="#22d3ee"/>
-          <circle id="glintL" cx="54" cy="49.5" r="1.8" fill="#ffffff"/>
-          <circle id="glintR" cx="78" cy="49.5" r="1.8" fill="#ffffff"/>
+        <!-- Sensor lens -->
+        <circle cx="66" cy="58" r="15" fill="url(#satLens)" stroke="#0891b2" stroke-width="1.6"/>
+        <circle cx="66" cy="58" r="15" fill="none" stroke="#22d3ee" stroke-width="0.8" opacity="0.4"/>
+        <g id="satEye" filter="url(#lensGlow)">
+          <circle id="satPupil" cx="66" cy="58" r="5.5" fill="#22d3ee"/>
+          <circle id="satGlint" cx="68" cy="55.5" r="1.6" fill="#ffffff"/>
         </g>
 
-        <!-- Cheeks -->
-        <circle cx="40" cy="63" r="3.5" fill="#22d3ee" opacity="0.3"/>
-        <circle cx="88" cy="63" r="3.5" fill="#22d3ee" opacity="0.3"/>
+        <!-- bottom thruster lights -->
+        <rect x="56" y="84" width="20" height="5" rx="2.5" fill="#e6f4f8" stroke="#0891b2" stroke-width="1.2"/>
+        <circle id="satThruster" cx="66" cy="93" r="3" fill="#22d3ee" opacity="0.8"/>
       </g>
     </svg>
   </div>
@@ -88,11 +89,11 @@
 <style>
   .companion {
     position: fixed;
-    right: 32px;
-    bottom: 24px;
+    right: 30px;
+    bottom: 22px;
     z-index: 90;
-    width: 128px;
-    height: 150px;
+    width: 132px;
+    height: 120px;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -104,62 +105,46 @@
   .companion-body {
     width: 100%;
     height: 100%;
-    animation: companionFloat 3.6s ease-in-out infinite;
+    animation: companionFloat 4s ease-in-out infinite;
     transform-origin: center bottom;
   }
   .companion.dragging .companion-body { animation: none; }
   .companion.poke .companion-body { animation: companionPoke 0.55s cubic-bezier(.36,.07,.19,.97); }
 
   @keyframes companionFloat {
-    0%, 100% { transform: translateY(0) rotate(-1.5deg); }
-    50%      { transform: translateY(-10px) rotate(1.5deg); }
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-9px) rotate(2deg); }
   }
   @keyframes companionPoke {
-    0%   { transform: translateY(0) scale(1); }
-    25%  { transform: translateY(6px) scale(1.1, 0.9); }
-    55%  { transform: translateY(-9px) scale(0.93, 1.07); }
-    100% { transform: translateY(0) scale(1); }
+    0%   { transform: translateY(0) scale(1) rotate(0); }
+    25%  { transform: translateY(5px) scale(1.08,0.92); }
+    55%  { transform: translateY(-8px) scale(0.94,1.06) rotate(4deg); }
+    100% { transform: translateY(0) scale(1) rotate(0); }
   }
 
-  /* Ground shadow breathes with float */
-  #groundShadow { animation: shadowPulse 3.6s ease-in-out infinite; transform-origin: center; }
-  @keyframes shadowPulse {
-    0%, 100% { opacity: 0.14; transform: scale(1); }
-    50%      { opacity: 0.07; transform: scale(0.8); }
-  }
+  /* Beacon + thruster pulse */
+  #satBeacon  { animation: satBlink 2.2s ease-in-out infinite; }
+  #satThruster { animation: satThrust 1.6s ease-in-out infinite; transform-origin: 66px 93px; }
+  @keyframes satBlink  { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  @keyframes satThrust { 0%,100%{opacity:0.8;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.7)} }
 
-  /* Antenna blink */
-  #antennaLight { animation: antennaBlink 2.4s ease-in-out infinite; }
-  @keyframes antennaBlink {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.3; }
-  }
+  /* Solar panels subtle tilt */
+  .sat-panel-l { transform-origin: 40px 59px; animation: panelL 5s ease-in-out infinite; }
+  .sat-panel-r { transform-origin: 92px 59px; animation: panelR 5s ease-in-out infinite; }
+  @keyframes panelL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-4deg)} }
+  @keyframes panelR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(4deg)} }
 
-  /* Chest core pulse */
-  #chestCore { animation: corePulse 2s ease-in-out infinite; transform-origin: 64px 107px; }
-  @keyframes corePulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.55; }
-  }
-
-  /* Arms gentle sway */
-  .arm-left  { transform-origin: 18px 90px; animation: armSwayL 4.2s ease-in-out infinite; }
-  .arm-right { transform-origin: 109px 90px; animation: armSwayR 4.2s ease-in-out infinite; }
-  @keyframes armSwayL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-7deg)} }
-  @keyframes armSwayR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(7deg)} }
-
-  /* Eyes blink */
-  #eyes { animation: eyeBlink 5s infinite; transform-origin: center; }
-  @keyframes eyeBlink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    95%           { transform: scaleY(0.1); }
+  #satShadow { animation: satShadowPulse 4s ease-in-out infinite; transform-origin: center; }
+  @keyframes satShadowPulse {
+    0%,100% { opacity: 0.16; transform: scale(1); }
+    50%     { opacity: 0.08; transform: scale(0.8); }
   }
 
   /* Speech bubble */
   .companion-bubble {
     position: absolute;
     bottom: 100%;
-    right: 8px;
+    right: 6px;
     margin-bottom: 12px;
     max-width: 220px;
     width: max-content;
@@ -170,7 +155,7 @@
     font-size: 13px;
     line-height: 1.55;
     color: #374151;
-    box-shadow: 0 10px 30px rgba(8,145,178,0.14);
+    box-shadow: 0 10px 30px rgba(8,145,178,0.16);
     opacity: 0;
     transform: translateY(8px) scale(0.92);
     transform-origin: bottom right;
@@ -181,8 +166,7 @@
   .companion-bubble::after {
     content: '';
     position: absolute;
-    bottom: -6px;
-    right: 30px;
+    bottom: -6px; right: 28px;
     width: 11px; height: 11px;
     background: #fff;
     border-right: 1px solid rgba(8,145,178,0.22);
@@ -191,7 +175,10 @@
   }
 
   @media (max-width: 640px) {
-    .companion { right: 16px; bottom: 16px; transform: scale(0.8); transform-origin: bottom right; }
+    .companion { right: 14px; bottom: 14px; transform: scale(0.82); transform-origin: bottom right; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .companion-body, .sat-panel-l, .sat-panel-r, #satBeacon, #satThruster, #satShadow { animation: none !important; }
   }
 </style>
 
@@ -202,65 +189,47 @@
 
     var body = document.getElementById('companionBody');
     var bubble = document.getElementById('companionBubble');
-    var eyeL = document.getElementById('eyeL');
-    var eyeR = document.getElementById('eyeR');
-    var glintL = document.getElementById('glintL');
-    var glintR = document.getElementById('glintR');
+    var pupil = document.getElementById('satPupil');
+    var glint = document.getElementById('satGlint');
 
-    var baseEyes = [{ x: 52, y: 52 }, { x: 76, y: 52 }];
-    var maxShift = 3.4;
+    var baseX = 66, baseY = 58, maxShift = 4;
 
-    // ── Eyes follow mouse ──────────────────────────────────
+    // Sensor lens tracks the cursor
     document.addEventListener('mousemove', function(e) {
       if (el.classList.contains('dragging')) return;
       var rect = el.getBoundingClientRect();
       var cx = rect.left + rect.width / 2;
-      var cy = rect.top + rect.height * 0.35;
-      var dx = e.clientX - cx;
-      var dy = e.clientY - cy;
-      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      var sx = (dx / dist) * maxShift;
-      var sy = (dy / dist) * maxShift;
-      eyeL.setAttribute('cx', baseEyes[0].x + sx);
-      eyeL.setAttribute('cy', baseEyes[0].y + sy);
-      eyeR.setAttribute('cx', baseEyes[1].x + sx);
-      eyeR.setAttribute('cy', baseEyes[1].y + sy);
-      glintL.setAttribute('cx', baseEyes[0].x + sx + 2);
-      glintL.setAttribute('cy', baseEyes[0].y + sy - 2.5);
-      glintR.setAttribute('cx', baseEyes[1].x + sx + 2);
-      glintR.setAttribute('cy', baseEyes[1].y + sy - 2.5);
+      var cy = rect.top + rect.height * 0.5;
+      var dx = e.clientX - cx, dy = e.clientY - cy;
+      var dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      var sx = (dx/dist) * maxShift, sy = (dy/dist) * maxShift;
+      pupil.setAttribute('cx', baseX + sx);
+      pupil.setAttribute('cy', baseY + sy);
+      glint.setAttribute('cx', baseX + sx + 2);
+      glint.setAttribute('cy', baseY + sy - 2.5);
     });
 
-    // ── Speech bubbles ─────────────────────────────────────
+    // Bubbles
     var idleLines = [
-      '系统在线运行中 ✦',
-      '今天也要好好写代码呀',
-      '检测到访客，欢迎～',
+      '信号良好，轨道稳定 📡',
+      '正在扫描数字空间…',
+      '检测到访客，欢迎登站',
       '要不要看看最新的博客？',
       '碎片记录里藏着不少灵感',
       '点我一下试试？',
-      '所有信号正常 📡',
-      'DSS 空间站待命中…'
+      '所有系统正常 ✦',
+      'DSS 探测器待命中…'
     ];
-    var pokeLines = [
-      '哎呀～',
-      '在的在的！',
-      '别戳啦 >_<',
-      '需要帮忙吗？',
-      '嘿！',
-      '收到指令 ✓'
-    ];
+    var pokeLines = ['哔哔——', '收到指令 ✓', '在的在的！', '别戳传感器啦 >_<', '需要协助吗？', '能量充足 ⚡'];
     var bubbleTimer = null;
 
     function say(text, duration) {
       bubble.textContent = text;
       bubble.classList.add('show');
       clearTimeout(bubbleTimer);
-      bubbleTimer = setTimeout(function() {
-        bubble.classList.remove('show');
-      }, duration || 3400);
+      bubbleTimer = setTimeout(function() { bubble.classList.remove('show'); }, duration || 3400);
     }
-    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function pick(a) { return a[Math.floor(Math.random()*a.length)]; }
 
     setTimeout(function() { say(idleLines[2]); }, 1200);
     setInterval(function() {
@@ -268,16 +237,13 @@
       if (Math.random() < 0.5) say(pick(idleLines));
     }, 14000);
 
-    // ── Click / poke reaction ──────────────────────────────
     body.addEventListener('click', function() {
       if (el._dragged) { el._dragged = false; return; }
-      el.classList.remove('poke');
-      void el.offsetWidth;
-      el.classList.add('poke');
+      el.classList.remove('poke'); void el.offsetWidth; el.classList.add('poke');
       say(pick(pokeLines), 2000);
     });
 
-    // ── Drag ───────────────────────────────────────────────
+    // Drag
     var startX, startY, originRight, originBottom, moved;
     function onDown(e) {
       var pt = e.touches ? e.touches[0] : e;
@@ -294,8 +260,7 @@
     }
     function onMove(e) {
       var pt = e.touches ? e.touches[0] : e;
-      var dx = pt.clientX - startX;
-      var dy = pt.clientY - startY;
+      var dx = pt.clientX - startX, dy = pt.clientY - startY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
       if (e.cancelable) e.preventDefault();
       el.style.right = Math.max(6, originRight - dx) + 'px';
