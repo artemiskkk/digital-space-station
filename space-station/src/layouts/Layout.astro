@@ -78,6 +78,27 @@ const navLinks = [
     }
     .nav-link:hover::after { width: 100%; }
     .nav-link:hover { color: var(--accent); }
+
+    /* Header default (solid) */
+    .site-header {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    /* Header transparent over a dark hero */
+    .site-header.nav-over-hero {
+      background: transparent;
+      border-bottom-color: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    .site-header.nav-over-hero .nav-logo { color: #fff; }
+    .site-header.nav-over-hero .nav-link { color: rgba(255,255,255,0.72); }
+    .site-header.nav-over-hero .nav-link span:first-child { color: rgba(255,255,255,0.4); }
+    .site-header.nav-over-hero .nav-link:hover { color: #fff; }
+    .site-header.nav-over-hero #authBtn { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
   </style>
 
   <!-- Inject API base URL for client scripts -->
@@ -105,8 +126,8 @@ const navLinks = [
 
   <!-- ─── Navigation ──────────────────────────────────────── -->
   <header
-    class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center"
-    style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light);"
+    id="siteHeader"
+    class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center site-header"
   >
     <nav class="max-w-5xl mx-auto w-full px-6 flex items-center justify-between">
 
@@ -117,7 +138,7 @@ const navLinks = [
           <circle cx="11" cy="11" r="2" fill="var(--accent)"/>
           <ellipse cx="11" cy="11" rx="9.5" ry="3.5" stroke="var(--accent)" stroke-width="1" stroke-opacity="0.5" transform="rotate(-30 11 11)"/>
         </svg>
-        <span class="font-display text-sm font-semibold tracking-widest text-gray-800 uppercase" style="font-family: 'Orbitron', sans-serif;">
+        <span class="nav-logo font-display text-sm font-semibold tracking-widest text-gray-800 uppercase" style="font-family: 'Orbitron', sans-serif;">
           DSS
         </span>
       </a>
@@ -214,6 +235,23 @@ const navLinks = [
     updateAuthBtn();
     // Re-run after ViewTransitions navigation
     document.addEventListener('astro:page-load', updateAuthBtn);
+
+    // Transparent header over the homepage dark hero; solid after scroll
+    (function() {
+      var header = document.getElementById('siteHeader');
+      if (!header) return;
+      var hasDarkHero = (location.pathname === '/' || location.pathname === '');
+      function updateHeader() {
+        if (hasDarkHero && window.scrollY < (window.innerHeight - 90)) {
+          header.classList.add('nav-over-hero');
+        } else {
+          header.classList.remove('nav-over-hero');
+        }
+      }
+      updateHeader();
+      window.addEventListener('scroll', updateHeader, { passive: true });
+      window.addEventListener('resize', updateHeader);
+    })();
 
     // Toggle login modal
     window.__dss_toggleLogin = function() {
