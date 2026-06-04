@@ -17,13 +17,8 @@
 
   <div class="hero-content">
 
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      个人数字空间站
-    </div>
-
     <h1 class="hero-title">
-      <span class="hero-title-line">DIGITAL&nbsp;<span class="hero-title-accent">SPACE</span></span>
+      <span class="hero-title-line">DIGITAL&nbsp;SPACE</span>
     </h1>
 
     <div class="hero-sub">
@@ -79,8 +74,8 @@
     object-fit: contain;
     transform: translateY(-4%);
     animation: heroVisualFloat 14s ease-in-out infinite;
-    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 55%, transparent 90%);
-    mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 55%, transparent 90%);
+    -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 48%, #000 38%, transparent 80%);
+    mask-image: radial-gradient(ellipse 62% 58% at 50% 48%, #000 38%, transparent 80%);
   }
   @keyframes heroVisualFloat {
     0%, 100% { transform: translateY(-4%) scale(1); }
@@ -93,8 +88,8 @@
     inset: 0;
     z-index: 1;
     background:
-      radial-gradient(ellipse 70% 60% at 50% 70%, rgba(10,10,12,0.7) 0%, transparent 60%),
-      linear-gradient(to bottom, rgba(10,10,12,0.35) 0%, transparent 25%, transparent 55%, rgba(10,10,12,0.55) 100%);
+      radial-gradient(ellipse 70% 60% at 50% 70%, rgba(5,5,6,0.6) 0%, transparent 60%),
+      linear-gradient(to bottom, #050506 0%, rgba(5,5,6,0.55) 14%, transparent 30%, transparent 58%, rgba(5,5,6,0.5) 100%);
     pointer-events: none;
   }
   .hero-fade {
@@ -212,13 +207,17 @@
     transition: all 0.25s cubic-bezier(.16,1,.3,1);
   }
   .hero-btn-primary {
-    color: #fff;
-    background: linear-gradient(135deg, #0891b2, #06b6d4);
-    box-shadow: 0 4px 20px rgba(8,145,178,0.4);
+    color: rgba(255,255,255,0.92);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 16px 46px;
+    font-size: 14px;
+    backdrop-filter: blur(4px);
   }
   .hero-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(8,145,178,0.55);
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.75);
   }
 
   .hero-scroll {
