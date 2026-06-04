@@ -546,14 +546,15 @@ const categories = [
     ta.focus();
   }
 
+  var uploadSeq = 0;
   function uploadImage(file) {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { alert('图片不能超过 10MB'); return; }
     var ta = document.getElementById('postContent');
     var btn = document.getElementById('uploadImgBtn');
     if (btn) btn.childNodes[0].textContent = '上传中...';
-    // Insert a placeholder so the user sees progress at the cursor
-    var ph = '![上传中…]()';
+    // Unique placeholder per upload, padded with blank lines so each image is its own block
+    var ph = '\n\n![上传中#' + (++uploadSeq) + '…]()\n\n';
     insertAtCursor(ta, ph);
     var fd = new FormData();
     fd.append('file', file);
@@ -562,7 +563,7 @@ const categories = [
       method: 'POST', body: fd
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.secure_url) {
-        ta.value = ta.value.replace(ph, '![](' + data.secure_url + ')');
+        ta.value = ta.value.replace(ph, '\n\n![](' + data.secure_url + ')\n\n');
       } else {
         ta.value = ta.value.replace(ph, '');
         alert((data.error && data.error.message) || '上传失败');
