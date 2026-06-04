@@ -1,99 +1,372 @@
 ---
-// Hero Section — light theme
+// Hero — light theme with a Three.js morphing wireframe sphere centerpiece.
 ---
 
-<section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+<section class="hero">
 
-  <div
-    class="absolute inset-0"
-    style="
-      background-image:
-        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 100%);
-    "
-    aria-hidden="true"
-  ></div>
+  <!-- 3D centerpiece -->
+  <canvas id="heroCanvas" class="hero-canvas" aria-hidden="true"></canvas>
 
-  <div
-    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
-    style="background: radial-gradient(circle, rgba(8,145,178,0.06) 0%, transparent 70%);"
-    aria-hidden="true"
-  ></div>
+  <!-- Soft ambient glow -->
+  <div class="hero-glow" aria-hidden="true"></div>
 
-  <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+  <!-- Subtle grid mask -->
+  <div class="hero-grid" aria-hidden="true"></div>
 
-    <div
-      class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[10px] tracking-[0.2em] mb-8"
-      style="color: #6b7280; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.06); animation: fadeUp 0.5s ease both;"
-    >
-      <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background: #0891b2;"></span>
-      UPTIME: ALL SYSTEMS NOMINAL
+  <div class="hero-content">
+
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      UPTIME · ALL SYSTEMS NOMINAL
     </div>
 
-    <h1
-      class="font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight leading-none mb-4"
-      style="font-family: 'Orbitron', sans-serif; color: #111827; animation: fadeUp 0.6s ease 0.1s both;"
-    >
-      SYSTEM
-      <span style="color: #0891b2;">ONLINE.</span>
+    <h1 class="hero-title">
+      <span class="hero-title-line">SYSTEM</span>
+      <span class="hero-title-line hero-title-accent">ONLINE.</span>
     </h1>
 
-    <div
-      class="mt-5 mb-10 text-base sm:text-lg tracking-wide"
-      style="font-family: 'DM Mono', monospace; animation: fadeUp 0.6s ease 0.2s both;"
-    >
-      <span style="color: #d1d5db;">~/artemis $&nbsp;</span>
-      <span style="color: #6b7280;">探索、记录与代码</span>
-      <span class="inline-block w-[2px] h-[1.1em] ml-0.5 align-middle animate-[blink_1.1s_step-end_infinite]" style="background: #0891b2;"></span>
+    <div class="hero-sub">
+      <span class="hero-prompt">~/artemis $&nbsp;</span>
+      <span>探索 · 记录 · 代码</span>
+      <span class="hero-caret"></span>
     </div>
 
-    <p
-      class="max-w-lg mx-auto text-sm leading-relaxed tracking-wide mb-12"
-      style="color: #9ca3af; animation: fadeUp 0.6s ease 0.3s both;"
-    >
-      这里是我的数字据点 —— 记录硬件与嵌入式的探索历程、零散的技术思考，以及一些不值得发朋友圈但值得被留存的碎片。
+    <p class="hero-desc">
+      这里是我的数字据点 —— 记录硬件与嵌入式的探索历程、零散的技术思考，<br class="hidden sm:block" />
+      以及一些值得被留存的碎片。
     </p>
 
-    <div
-      class="flex flex-wrap items-center justify-center gap-4"
-      style="animation: fadeUp 0.6s ease 0.4s both;"
-    >
-      <a
-        href="/blog"
-        class="group inline-flex items-center gap-2 px-6 py-2.5 text-sm tracking-widest text-white rounded-md transition-all duration-300 hover:-translate-y-0.5"
-        style="font-family: 'DM Mono', monospace; background: #0891b2; box-shadow: 0 2px 12px rgba(8,145,178,0.25);"
-      >
+    <div class="hero-actions">
+      <a href="/blog" class="hero-btn hero-btn-primary">
         读博客
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <a
-        href="/about"
-        class="inline-flex items-center gap-2 px-6 py-2.5 text-sm tracking-widest rounded-md transition-all duration-300 hover:-translate-y-0.5"
-        style="font-family: 'DM Mono', monospace; color: #6b7280; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08);"
-      >
-        关于作者
-      </a>
+      <a href="/about" class="hero-btn hero-btn-ghost">关于作者</a>
     </div>
+
   </div>
 
-  <div
-    class="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-    style="background: linear-gradient(to bottom, transparent, #fafafa);"
-    aria-hidden="true"
-  ></div>
+  <!-- scroll hint -->
+  <div class="hero-scroll" aria-hidden="true">
+    <span>SCROLL</span>
+    <div class="hero-scroll-line"></div>
+  </div>
 
 </section>
 
 <style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0; }
+
+  .hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 44%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 620px; height: 620px;
+    background: radial-gradient(circle, rgba(8,145,178,0.10) 0%, rgba(34,211,238,0.04) 40%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(8,145,178,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(8,145,178,0.04) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: radial-gradient(ellipse 65% 55% at 50% 45%, black 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 45%, black 10%, transparent 75%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 24px;
+    max-width: 900px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: #6b7280;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(8,145,178,0.15);
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: heroFade 0.7s ease 0.1s forwards;
+  }
+  .hero-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #0891b2;
+    box-shadow: 0 0 0 0 rgba(8,145,178,0.5);
+    animation: heroPulse 2s infinite;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: 0.04em;
+    margin: 0 0 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .hero-title-line {
+    font-size: clamp(48px, 11vw, 128px);
+    color: #111827;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: heroRise 0.9s cubic-bezier(.16,1,.3,1) 0.2s forwards;
+  }
+  .hero-title-accent {
+    color: #0891b2;
+    background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation-delay: 0.32s;
+  }
+
+  .hero-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(14px, 2vw, 18px);
+    letter-spacing: 0.05em;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: heroFade 0.7s ease 0.5s forwards;
+  }
+  .hero-prompt { color: #cbd5e1; }
+  .hero-sub > span:nth-child(2) { color: #6b7280; }
+  .hero-caret {
+    display: inline-block;
+    width: 2px; height: 1.05em;
+    margin-left: 3px;
+    vertical-align: middle;
+    background: #0891b2;
+    animation: heroBlink 1.1s step-end infinite;
+  }
+
+  .hero-desc {
+    max-width: 540px;
+    margin: 0 auto 40px;
+    font-size: 14px;
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+    color: #9ca3af;
+    opacity: 0;
+    animation: heroFade 0.7s ease 0.65s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    opacity: 0;
+    animation: heroFade 0.7s ease 0.8s forwards;
+  }
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 26px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(.16,1,.3,1);
+  }
+  .hero-btn-primary {
+    color: #fff;
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    box-shadow: 0 4px 16px rgba(8,145,178,0.28);
+  }
+  .hero-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(8,145,178,0.36);
+  }
+  .hero-btn-ghost {
+    color: #6b7280;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(6px);
+    border: 1px solid #e5e7eb;
+  }
+  .hero-btn-ghost:hover {
+    color: #0891b2;
+    border-color: rgba(8,145,178,0.3);
+    transform: translateY(-2px);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: #cbd5e1;
+    opacity: 0;
+    animation: heroFade 1s ease 1.1s forwards;
+  }
+  .hero-scroll-line {
+    width: 1px; height: 36px;
+    background: linear-gradient(to bottom, #0891b2, transparent);
+    animation: heroScroll 2s ease-in-out infinite;
+    transform-origin: top;
+  }
+
+  @keyframes heroFade { to { opacity: 1; } }
+  @keyframes heroRise { to { opacity: 1; transform: translateY(0); } }
+  @keyframes heroBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes heroPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(8,145,178,0.5); }
+    70%  { box-shadow: 0 0 0 7px rgba(8,145,178,0); }
+    100% { box-shadow: 0 0 0 0 rgba(8,145,178,0); }
+  }
+  @keyframes heroScroll {
+    0%,100% { transform: scaleY(0.4); opacity: 0.4; }
+    50%     { transform: scaleY(1); opacity: 1; }
+  }
+
+  @media (max-width: 640px) {
+    .hero-glow { width: 380px; height: 380px; }
   }
 </style>
+
+<script type="module" is:inline>
+  import * as THREE from 'https://esm.sh/three@0.160.0';
+
+  var canvas = document.getElementById('heroCanvas');
+  if (canvas && window.WebGLRenderingContext) {
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.z = 3.4;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+
+    function resize() {
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+
+    // Morphing wireframe sphere (wireframe material = cheap to morph)
+    var geo = new THREE.IcosahedronGeometry(1.18, 4);
+    var basePos = geo.attributes.position.array.slice(0);
+    var pos = geo.attributes.position;
+
+    var wire = new THREE.Mesh(
+      geo,
+      new THREE.MeshBasicMaterial({ color: 0x0891b2, wireframe: true, transparent: true, opacity: 0.22 })
+    );
+
+    // Bright points on vertices (share the morphing position buffer)
+    var points = new THREE.Points(
+      geo,
+      new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.04, transparent: true, opacity: 0.7 })
+    );
+
+    var group = new THREE.Group();
+    group.add(wire);
+    group.add(points);
+    scene.add(group);
+
+    // Ambient floating dust
+    var dustCount = 70;
+    var dustGeo = new THREE.BufferGeometry();
+    var dustArr = new Float32Array(dustCount * 3);
+    for (var i = 0; i < dustCount; i++) {
+      dustArr[i*3]   = (Math.random() - 0.5) * 7;
+      dustArr[i*3+1] = (Math.random() - 0.5) * 5;
+      dustArr[i*3+2] = (Math.random() - 0.5) * 4;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustArr, 3));
+    var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0x0891b2, size: 0.02, transparent: true, opacity: 0.35 }));
+    scene.add(dust);
+
+    // Mouse parallax
+    var mx = 0, my = 0, tmx = 0, tmy = 0;
+    window.addEventListener('mousemove', function(e) {
+      tmx = (e.clientX / window.innerWidth - 0.5);
+      tmy = (e.clientY / window.innerHeight - 0.5);
+    });
+
+    function noise(x, y, z, t) {
+      return Math.sin(x * 2.2 + t) * 0.5 +
+             Math.sin(y * 2.8 + t * 1.3) * 0.35 +
+             Math.sin(z * 2.5 + t * 0.7) * 0.3;
+    }
+
+    var clock = new THREE.Clock();
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      var t = clock.getElapsedTime();
+
+      // Morph vertices along their normals
+      for (var i = 0; i < pos.count; i++) {
+        var ix = i * 3;
+        var ox = basePos[ix], oy = basePos[ix+1], oz = basePos[ix+2];
+        var len = Math.sqrt(ox*ox + oy*oy + oz*oz) || 1;
+        var n = noise(ox/len, oy/len, oz/len, t * 0.6);
+        var disp = 1 + n * 0.09;
+        pos.array[ix]   = ox * disp;
+        pos.array[ix+1] = oy * disp;
+        pos.array[ix+2] = oz * disp;
+      }
+      pos.needsUpdate = true;
+
+      mx += (tmx - mx) * 0.04;
+      my += (tmy - my) * 0.04;
+      group.rotation.y = t * 0.12 + mx * 0.6;
+      group.rotation.x = my * 0.5;
+      dust.rotation.y = t * 0.02;
+
+      renderer.render(scene, camera);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    if (!reduced) animate();
+    else renderer.render(scene, camera);
+  }
+</script>
