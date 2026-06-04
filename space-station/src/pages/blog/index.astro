@@ -530,38 +530,74 @@ const categories = [
     postList.style.display = '';
   });
 
-  // Image upload — direct to Cloudinary (unsigned)
+  // Image upload — direct to Cloudinary (unsigned). Supports pick / paste / drop.
   var CLOUDINARY_CLOUD = 'dxxjjw6fy';
   var CLOUDINARY_PRESET = 'ml_default';
-  document.getElementById('imgFileInput').addEventListener('change', function(e) {
-    var file = e.target.files[0];
+
+  function insertAtCursor(ta, text) {
+    var pos = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+    ta.value = ta.value.slice(0, pos) + text + ta.value.slice(pos);
+    ta.selectionStart = ta.selectionEnd = pos + text.length;
+    ta.focus();
+  }
+
+  function uploadImage(file) {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('图片不能超过 10MB'); e.target.value = ''; return; }
+    if (file.size > 10 * 1024 * 1024) { alert('图片不能超过 10MB'); return; }
+    var ta = document.getElementById('postContent');
     var btn = document.getElementById('uploadImgBtn');
-    btn.childNodes[0].textContent = '上传中...';
+    if (btn) btn.childNodes[0].textContent = '上传中...';
+    // Insert a placeholder so the user sees progress at the cursor
+    var ph = '![上传中…]()';
+    insertAtCursor(ta, ph);
     var fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', CLOUDINARY_PRESET);
     fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
-      method: 'POST',
-      body: fd
+      method: 'POST', body: fd
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.secure_url) {
-        var ta = document.getElementById('postContent');
-        var pos = ta.selectionStart;
-        var md = '![](' + data.secure_url + ')';
-        ta.value = ta.value.slice(0, pos) + md + ta.value.slice(pos);
-        ta.selectionStart = ta.selectionEnd = pos + md.length;
-        ta.focus();
+        ta.value = ta.value.replace(ph, '![](' + data.secure_url + ')');
       } else {
+        ta.value = ta.value.replace(ph, '');
         alert((data.error && data.error.message) || '上传失败');
       }
     }).catch(function() {
+      ta.value = ta.value.replace(ph, '');
       alert('上传失败');
     }).finally(function() {
-      btn.childNodes[0].textContent = '⬆ 插入图片';
-      e.target.value = '';
+      if (btn) btn.childNodes[0].textContent = '⬆ 插入图片';
     });
+  }
+
+  // 1) File picker
+  document.getElementById('imgFileInput').addEventListener('change', function(e) {
+    if (e.target.files[0]) uploadImage(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  // 2) Paste image from clipboard
+  document.getElementById('postContent').addEventListener('paste', function(e) {
+    var items = (e.clipboardData || window.clipboardData).items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image') === 0) {
+        e.preventDefault();
+        uploadImage(items[i].getAsFile());
+        return;
+      }
+    }
+  });
+
+  // 3) Drag & drop image onto the editor
+  var contentTa = document.getElementById('postContent');
+  contentTa.addEventListener('dragover', function(e) { e.preventDefault(); contentTa.style.borderColor = 'rgba(8,145,178,0.5)'; });
+  contentTa.addEventListener('dragleave', function() { contentTa.style.borderColor = ''; });
+  contentTa.addEventListener('drop', function(e) {
+    e.preventDefault();
+    contentTa.style.borderColor = '';
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f && f.type.indexOf('image') === 0) uploadImage(f);
   });
 
   titleInput.addEventListener('input', function() {
