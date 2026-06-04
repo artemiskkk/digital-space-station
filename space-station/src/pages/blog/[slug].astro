@@ -32,7 +32,9 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
 
 <Layout title={`${title} · DSS`} description={excerpt}>
 
-  <article class="max-w-3xl mx-auto px-6 py-20">
+  <div class="article-layout">
+
+  <article class="article-main">
 
     <!-- ── 返回按钮 ────────────────────────────────────────── -->
     <a
@@ -146,9 +148,97 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     </footer>
 
   </article>
+
+    <!-- ── 右侧：同类文章 ─────────────────────────────────── -->
+    <aside class="article-rail">
+      <div class="rail-panel" id="relatedRail" data-slug={slug} data-tags={JSON.stringify(tags)}>
+        <p class="rail-label" id="railLabel">同类文章</p>
+        <div id="relatedList" class="rail-list">
+          <p class="rail-empty">加载中…</p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
 </Layout>
 
 <style>
+  /* ── 两栏布局 ──────────────────────────────────────────── */
+  .article-layout {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+  }
+  .article-main { flex: 1; min-width: 0; max-width: 720px; }
+  .article-rail {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 90px;
+  }
+  .rail-panel {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 16px;
+    padding: 18px 16px;
+    box-shadow: 0 6px 28px rgba(8,145,178,0.07);
+  }
+  .rail-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 14px;
+    padding-left: 4px;
+  }
+  .rail-list { display: flex; flex-direction: column; gap: 4px; }
+  .rail-item {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #4b5563;
+    text-decoration: none;
+    transition: all 0.18s ease;
+    border: 1px solid transparent;
+  }
+  .rail-item:hover {
+    background: rgba(8,145,178,0.06);
+    color: #0891b2;
+    border-color: rgba(8,145,178,0.12);
+  }
+  .rail-item.current {
+    background: rgba(8,145,178,0.08);
+    color: #0891b2;
+    font-weight: 600;
+    cursor: default;
+  }
+  .rail-item-date {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #cbd5e1;
+    margin-top: 3px;
+  }
+  .rail-empty {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-family: 'DM Mono', monospace;
+    padding: 6px 4px;
+  }
+  @media (max-width: 900px) {
+    .article-layout { display: block; padding: 60px 24px; }
+    .article-main { max-width: 720px; margin: 0 auto; }
+    .article-rail { display: none; }
+  }
+
   /* ── 页面入场动画 ──────────────────────────────────────── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -221,3 +311,61 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
   /* View Transition：文章标题跨页动画 */
   h1 { view-transition-name: article-title; }
 </style>
+
+<script is:inline>
+  (function() {
+    var rail = document.getElementById('relatedRail');
+    if (!rail) return;
+    var listEl = document.getElementById('relatedList');
+    var labelEl = document.getElementById('railLabel');
+    var API = window.__DSS_API;
+    var curSlug = rail.dataset.slug;
+    var tags = [];
+    try { tags = JSON.parse(rail.dataset.tags || '[]'); } catch (e) {}
+
+    var CATEGORIES = ['技术手记','生活漫笔','市场观察','山河远阔','读书札记','随想杂谈'];
+    var category = null;
+    for (var i = 0; i < tags.length; i++) {
+      if (CATEGORIES.indexOf(tags[i]) !== -1) { category = tags[i]; break; }
+    }
+    if (labelEl) labelEl.textContent = category || '更多文章';
+
+    if (!window.__dss_isLoggedIn || !window.__dss_isLoggedIn()) {
+      listEl.innerHTML = '<p class="rail-empty">登录后查看</p>';
+      return;
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+      });
+    }
+
+    fetch(API + '/api/posts?page=1&size=100', {
+      headers: { 'Authorization': 'Bearer ' + window.__dss_getToken() }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var items = (data && data.items) || [];
+      // Filter to same category (if known); always keep current
+      var list = items.filter(function(p) {
+        if (p.slug === curSlug) return true;
+        if (!category) return true;
+        return (p.tags || []).indexOf(category) !== -1;
+      });
+      if (list.length <= 1) {
+        listEl.innerHTML = '<p class="rail-empty">暂无同类文章</p>';
+        return;
+      }
+      listEl.innerHTML = list.map(function(p) {
+        var date = (p.created_at || '').split('T')[0];
+        if (p.slug === curSlug) {
+          return '<span class="rail-item current">' + esc(p.title) +
+            '<span class="rail-item-date">' + esc(date) + '</span></span>';
+        }
+        return '<a class="rail-item" href="/blog/' + esc(p.slug) + '">' + esc(p.title) +
+          '<span class="rail-item-date">' + esc(date) + '</span></a>';
+      }).join('');
+    }).catch(function() {
+      listEl.innerHTML = '<p class="rail-empty">加载失败</p>';
+    });
+  })();
+</script>
