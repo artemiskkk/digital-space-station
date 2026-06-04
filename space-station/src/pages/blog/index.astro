@@ -15,6 +15,19 @@ const categories = [
 ---
 
 <Layout title="博客 · DSS">
+
+  <!-- ── 深色页眉带 ── -->
+  <header class="page-hero js-dark-hero">
+    <div class="page-hero-grid" aria-hidden="true"></div>
+    <div class="page-hero-glow" aria-hidden="true"></div>
+    <div class="page-hero-inner">
+      <p class="page-hero-label">BLOG</p>
+      <h1 id="pageTitle" class="page-hero-title">全部文章<span class="title-dot"></span></h1>
+      <span id="postCount" class="page-hero-count"></span>
+    </div>
+    <div class="page-hero-fade" aria-hidden="true"></div>
+  </header>
+
   <div class="blog-layout">
 
     <!-- ── 左侧边栏 ── -->
@@ -40,17 +53,6 @@ const categories = [
 
     <!-- ── 右侧内容 ── -->
     <main class="content">
-
-      <div class="content-header">
-        <div>
-          <p class="header-label">BLOG</p>
-          <h1 id="pageTitle" class="header-title">
-            全部文章
-            <span class="title-dot"></span>
-          </h1>
-        </div>
-        <span id="postCount" class="post-count"></span>
-      </div>
 
       <!-- 编辑器 -->
       <div id="editorPanel" class="editor hidden">
@@ -127,10 +129,59 @@ const categories = [
     background-size: 56px 56px;
   }
 
+  /* ── 深色页眉带 ── */
+  .page-hero {
+    position: relative;
+    margin-top: -3.5rem;
+    padding: 7.5rem 24px 4.5rem;
+    background: #050506;
+    overflow: hidden;
+    text-align: center;
+  }
+  .page-hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(34,211,238,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,0.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, black 5%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, black 5%, transparent 75%);
+  }
+  .page-hero-glow {
+    position: absolute; top: 30%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 520px; height: 320px;
+    background: radial-gradient(ellipse at center, rgba(8,145,178,0.18) 0%, transparent 70%);
+    z-index: 0; pointer-events: none;
+  }
+  .page-hero-inner { position: relative; z-index: 2; }
+  .page-hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.32em;
+    color: rgba(255,255,255,0.42);
+    margin-bottom: 12px;
+  }
+  .page-hero-title {
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 800; letter-spacing: 0.01em;
+    color: #fff; margin: 0;
+  }
+  .page-hero-count {
+    display: block; margin-top: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.38);
+  }
+  .page-hero-fade {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 90px; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom, transparent, #fafafa);
+  }
+
   .blog-layout {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 40px 24px;
+    padding: 28px 24px 80px;
     display: flex;
     gap: 48px;
     position: relative;

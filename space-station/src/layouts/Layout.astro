@@ -236,14 +236,15 @@ const navLinks = [
     // Re-run after ViewTransitions navigation
     document.addEventListener('astro:page-load', updateAuthBtn);
 
-    // Transparent header over the homepage dark hero; solid after scroll
+    // Transparent header over any dark hero band; solid after scrolling past it
     (function() {
       var header = document.getElementById('siteHeader');
       if (!header) return;
-      var hasDarkHero = (location.pathname === '/' || location.pathname === '');
+      var darkEl = document.querySelector('.js-dark-hero');
       function updateHeader() {
-        if (hasDarkHero && window.scrollY < (window.innerHeight - 90)) {
-          header.classList.add('nav-over-hero');
+        if (darkEl) {
+          var threshold = darkEl.getBoundingClientRect().height - 70;
+          header.classList.toggle('nav-over-hero', window.scrollY < threshold);
         } else {
           header.classList.remove('nav-over-hero');
         }
