@@ -43,11 +43,12 @@
 </section>
 
 <style>
-  .moment-item:hover .moment-dot {
+  /* 卡片由客户端 JS 动态生成，必须用 :global 才能命中 */
+  :global(.moment-item:hover .moment-dot) {
     border-color: rgba(8,145,178,0.3) !important;
     box-shadow: 0 0 10px rgba(8,145,178,0.08);
   }
-  .moment-item:hover .moment-card {
+  :global(.moment-item:hover .moment-card) {
     border-color: rgba(8,145,178,0.15) !important;
     box-shadow: 0 4px 16px rgba(0,0,0,0.04);
     transform: translateX(3px);

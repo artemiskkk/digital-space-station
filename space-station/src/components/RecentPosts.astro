@@ -49,32 +49,36 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-  .rp-card {
+  /* 卡片由客户端 JS 动态生成，必须用 :global 才能命中 */
+  :global(.rp-card) {
     display: block;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 12px;
     padding: 24px;
     text-decoration: none;
-    transition: all 0.3s;
+    box-shadow: 0 4px 18px rgba(8,145,178,0.05);
+    transition: all 0.25s cubic-bezier(.16,1,.3,1);
   }
-  .rp-card:hover {
+  :global(.rp-card:hover) {
     transform: translateY(-3px);
     border-color: rgba(8,145,178,0.25);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.06), 0 0 0 1px rgba(8,145,178,0.08);
+    box-shadow: 0 12px 32px rgba(8,145,178,0.1);
   }
-  .rp-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  .rp-tag {
+  :global(.rp-tags) { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  :global(.rp-tag) {
     padding: 2px 8px; font-size: 10px; font-family: 'DM Mono', monospace;
     letter-spacing: 0.1em; border-radius: 4px; text-transform: uppercase;
     background: rgba(8,145,178,0.06); border: 1px solid rgba(8,145,178,0.15); color: #0891b2;
   }
-  .rp-title { font-size: 17px; font-weight: 600; color: #111827; margin: 0 0 10px; line-height: 1.4; }
-  .rp-excerpt { font-size: 14px; color: #9ca3af; line-height: 1.6; margin: 0 0 20px;
+  :global(.rp-title) { font-size: 17px; font-weight: 600; color: #111827; margin: 0 0 10px; line-height: 1.4; }
+  :global(.rp-excerpt) { font-size: 14px; color: #9ca3af; line-height: 1.6; margin: 0 0 20px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .rp-meta { display: flex; justify-content: space-between; font-size: 11px;
+  :global(.rp-meta) { display: flex; justify-content: space-between; font-size: 11px;
     color: #d1d5db; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
-  .rp-empty { grid-column: 1/-1; text-align: center; padding: 64px 0; color: #d1d5db;
+  :global(.rp-empty) { grid-column: 1/-1; text-align: center; padding: 64px 0; color: #d1d5db;
     font-family: 'DM Mono', monospace; font-size: 13px; }
 </style>
 
