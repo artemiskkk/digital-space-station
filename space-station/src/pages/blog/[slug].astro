@@ -197,38 +197,54 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     margin-bottom: 14px;
     padding-left: 4px;
   }
-  .rail-list { display: flex; flex-direction: column; gap: 2px; }
+  .rail-list { display: flex; flex-direction: column; gap: 8px; }
   .rail-item {
+    position: relative;
     display: block;
-    padding: 11px 10px;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.55;
     color: #4b5563;
     text-decoration: none;
-    transition: all 0.18s ease;
-    border: 1px solid transparent;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.85);
+    box-shadow: 0 2px 10px rgba(8,145,178,0.04);
+    transition: all 0.2s cubic-bezier(.16,1,.3,1);
   }
-  .rail-item + .rail-item { border-top: 1px solid rgba(0,0,0,0.04); }
   .rail-item:hover {
-    background: rgba(8,145,178,0.06);
     color: #0891b2;
-    border-color: rgba(8,145,178,0.12);
+    border-color: rgba(8,145,178,0.25);
+    box-shadow: 0 6px 18px rgba(8,145,178,0.1);
+    transform: translateX(3px);
   }
   .rail-item.current {
-    background: rgba(8,145,178,0.08);
-    color: #0891b2;
+    background: rgba(8,145,178,0.1);
+    border-color: rgba(8,145,178,0.3);
+    color: #0e7490;
     font-weight: 600;
     cursor: default;
+    padding-left: 16px;
   }
-  .rail-item-title { display: block; }
-  .rail-item-date {
-    display: block;
+  .rail-item.current::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 3px; border-radius: 0 3px 3px 0;
+    background: linear-gradient(to bottom, #22d3ee, #0891b2);
+  }
+  .rail-item.current::after {
+    content: '阅读中';
+    display: inline-block;
+    margin-left: 6px;
     font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.04em;
-    color: #b6c0cc;
-    margin-top: 7px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: #0891b2;
+    background: rgba(8,145,178,0.12);
+    padding: 1px 6px;
+    border-radius: 99px;
+    vertical-align: middle;
   }
   .rail-empty {
     font-size: 12px;
@@ -359,13 +375,10 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
         return;
       }
       listEl.innerHTML = list.map(function(p) {
-        var date = (p.created_at || '').split('T')[0];
         if (p.slug === curSlug) {
-          return '<span class="rail-item current"><span class="rail-item-title">' + esc(p.title) +
-            '</span><span class="rail-item-date">' + esc(date) + '</span></span>';
+          return '<span class="rail-item current">' + esc(p.title) + '</span>';
         }
-        return '<a class="rail-item" href="/blog/' + esc(p.slug) + '"><span class="rail-item-title">' + esc(p.title) +
-          '</span><span class="rail-item-date">' + esc(date) + '</span></a>';
+        return '<a class="rail-item" href="/blog/' + esc(p.slug) + '">' + esc(p.title) + '</a>';
       }).join('');
     }).catch(function() {
       listEl.innerHTML = '<p class="rail-empty">加载失败</p>';
