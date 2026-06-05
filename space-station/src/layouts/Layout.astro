@@ -11,8 +11,8 @@ const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 
 const navLinks = [
   { href: '/blog',       label: '博客',   code: '01' },
-  { href: '/moments',    label: '碎片',   code: '02' },
-  { href: '/milestones', label: '里程碑', code: '03' },
+  { href: '/moments',    label: '碎片',   code: '02', auth: true },
+  { href: '/milestones', label: '里程碑', code: '03', auth: true },
   { href: '/about',      label: '关于',   code: '04' },
   { href: '/friends',    label: '好友',   code: '05', admin: true },
 ];
@@ -146,7 +146,10 @@ const navLinks = [
       <div class="flex items-center gap-7">
         <ul class="flex items-center gap-7 list-none m-0 p-0">
           {navLinks.map((link) => (
-            <li class={link.admin ? 'nav-admin-only' : ''} style={link.admin ? 'display:none' : ''}>
+            <li
+              class={link.admin ? 'nav-admin-only' : (link.auth ? 'nav-auth-only' : '')}
+              style={(link.admin || link.auth) ? 'display:none' : ''}
+            >
               <a href={link.href} class="nav-link flex items-center gap-1.5 text-xs tracking-wider text-gray-400 no-underline">
                 <span class="text-[10px] text-gray-300" style="font-family: 'Orbitron', sans-serif;">{link.code}</span>
                 <span>{link.label}</span>
@@ -228,9 +231,15 @@ const navLinks = [
         btn.style.color = '#9ca3af';
         btn.style.borderColor = '#e5e7eb';
       }
-      if (window.__dss_getRole() === 'admin') {
-        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
-      }
+      var loggedIn = window.__dss_isLoggedIn();
+      // Logged-in users see auth-only links (碎片 / 里程碑)
+      document.querySelectorAll('.nav-auth-only').forEach(function(el) {
+        el.style.display = loggedIn ? '' : 'none';
+      });
+      // Admin-only links (好友)
+      document.querySelectorAll('.nav-admin-only').forEach(function(el) {
+        el.style.display = (window.__dss_getRole() === 'admin') ? '' : 'none';
+      });
     }
     updateAuthBtn();
     // Re-run after ViewTransitions navigation
