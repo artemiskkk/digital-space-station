@@ -197,10 +197,10 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     margin-bottom: 14px;
     padding-left: 4px;
   }
-  .rail-list { display: flex; flex-direction: column; gap: 4px; }
+  .rail-list { display: flex; flex-direction: column; gap: 2px; }
   .rail-item {
     display: block;
-    padding: 9px 10px;
+    padding: 11px 10px;
     border-radius: 8px;
     font-size: 13px;
     line-height: 1.5;
@@ -209,6 +209,7 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     transition: all 0.18s ease;
     border: 1px solid transparent;
   }
+  .rail-item + .rail-item { border-top: 1px solid rgba(0,0,0,0.04); }
   .rail-item:hover {
     background: rgba(8,145,178,0.06);
     color: #0891b2;
@@ -220,12 +221,14 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     font-weight: 600;
     cursor: default;
   }
+  .rail-item-title { display: block; }
   .rail-item-date {
     display: block;
     font-family: 'DM Mono', monospace;
     font-size: 10px;
-    color: #cbd5e1;
-    margin-top: 3px;
+    letter-spacing: 0.04em;
+    color: #b6c0cc;
+    margin-top: 7px;
   }
   .rail-empty {
     font-size: 12px;
@@ -358,11 +361,11 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
       listEl.innerHTML = list.map(function(p) {
         var date = (p.created_at || '').split('T')[0];
         if (p.slug === curSlug) {
-          return '<span class="rail-item current">' + esc(p.title) +
-            '<span class="rail-item-date">' + esc(date) + '</span></span>';
+          return '<span class="rail-item current"><span class="rail-item-title">' + esc(p.title) +
+            '</span><span class="rail-item-date">' + esc(date) + '</span></span>';
         }
-        return '<a class="rail-item" href="/blog/' + esc(p.slug) + '">' + esc(p.title) +
-          '<span class="rail-item-date">' + esc(date) + '</span></a>';
+        return '<a class="rail-item" href="/blog/' + esc(p.slug) + '"><span class="rail-item-title">' + esc(p.title) +
+          '</span><span class="rail-item-date">' + esc(date) + '</span></a>';
       }).join('');
     }).catch(function() {
       listEl.innerHTML = '<p class="rail-empty">加载失败</p>';
