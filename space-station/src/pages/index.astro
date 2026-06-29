@@ -7,3 +7,11 @@ import Hero from '../components/Hero.astro';
 <Layout title="DIGITAL SPACE">
   <Hero />
 </Layout>
+
+<!-- 首页就是满屏一张图，去掉页脚/底部渐变/滚动提示，正好一屏不留白 -->
+<style is:global>
+  footer { display: none !important; }
+  .hero-fade, .hero-scroll { display: none !important; }
+  .hero { min-height: 100vh; }
+  html, body { overflow-x: hidden; }
+</style>
