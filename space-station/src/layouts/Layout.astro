@@ -59,7 +59,15 @@ const navLinks = [
 
     body {
       font-family: 'Inter', 'DM Mono', system-ui, sans-serif;
-      background: var(--bg) url('/background.png') center top / cover no-repeat fixed;
+      background-color: var(--bg);
+      /* 科技背景图 + 一层半透明白蒙版，让背景更淡、卡片更突出 */
+      background-image:
+        linear-gradient(rgba(250,250,251,0.66), rgba(250,250,251,0.66)),
+        url('/background.png');
+      background-size: cover, cover;
+      background-position: center, center top;
+      background-repeat: no-repeat, no-repeat;
+      background-attachment: fixed, fixed;
       color: var(--text);
       -webkit-font-smoothing: antialiased;
     }
