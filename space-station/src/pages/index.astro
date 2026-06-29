@@ -2,30 +2,8 @@
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
-import RecentPosts from '../components/RecentPosts.astro';
-import MomentsTimeline from '../components/MomentsTimeline.astro';
 ---
 
 <Layout title="DIGITAL SPACE">
-
-  <!-- ① 首屏区 -->
   <Hero />
-
-  <!-- ② 最新文章区 -->
-  <RecentPosts />
-
-  <!-- ③ 碎片记录时间轴 (登录后可见) -->
-  <div id="momentsSection" style="display:none;">
-    <MomentsTimeline />
-  </div>
-
 </Layout>
-
-<script is:inline>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (window.__dss_isLoggedIn && window.__dss_isLoggedIn()) {
-      var el = document.getElementById('momentsSection');
-      if (el) el.style.display = '';
-    }
-  });
-</script>
