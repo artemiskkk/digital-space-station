@@ -87,6 +87,11 @@ const navLinks = [
     .nav-link:hover::after { width: 100%; }
     .nav-link:hover { color: var(--accent); }
 
+    /* Locked nav items (guest can see structure but not open) */
+    .nav-link.nav-locked { opacity: 0.45; cursor: pointer; }
+    .nav-link.nav-locked:hover { color: inherit; }
+    .nav-link.nav-locked:hover::after { width: 0; }
+
     /* Header default (frosted, blends with the light bg) */
     .site-header {
       background: rgba(255,255,255,0.45);
@@ -154,13 +159,16 @@ const navLinks = [
       <div class="flex items-center gap-7">
         <ul class="flex items-center gap-7 list-none m-0 p-0">
           {navLinks.map((link) => (
-            <li
-              class={link.admin ? 'nav-admin-only' : (link.auth ? 'nav-auth-only' : '')}
-              style={(link.admin || link.auth) ? 'display:none' : ''}
-            >
-              <a href={link.href} class="nav-link flex items-center gap-1.5 text-xs tracking-wider text-gray-400 no-underline">
+            <li>
+              <a
+                href={link.href}
+                class="nav-link flex items-center gap-1.5 text-xs tracking-wider text-gray-400 no-underline"
+                data-auth={link.auth ? '1' : ''}
+                data-admin={link.admin ? '1' : ''}
+              >
                 <span class="text-[10px] text-gray-300" style="font-family: 'Orbitron', sans-serif;">{link.code}</span>
                 <span>{link.label}</span>
+                <span class="nav-lock" style="display:none; font-size:9px; opacity:0.7;">🔒</span>
               </a>
             </li>
           ))}
@@ -240,13 +248,22 @@ const navLinks = [
         btn.style.borderColor = '#e5e7eb';
       }
       var loggedIn = window.__dss_isLoggedIn();
-      // Logged-in users see auth-only links (碎片 / 里程碑)
-      document.querySelectorAll('.nav-auth-only').forEach(function(el) {
-        el.style.display = loggedIn ? '' : 'none';
-      });
-      // Admin-only links (好友)
-      document.querySelectorAll('.nav-admin-only').forEach(function(el) {
-        el.style.display = (window.__dss_getRole() === 'admin') ? '' : 'none';
+      var isAdmin = window.__dss_getRole() === 'admin';
+      // Restricted nav links: visible to all, but locked for those without access.
+      document.querySelectorAll('.nav-link').forEach(function(a) {
+        var needAuth = a.dataset.auth === '1';
+        var needAdmin = a.dataset.admin === '1';
+        var locked = (needAdmin && !isAdmin) || (needAuth && !loggedIn);
+        var lock = a.querySelector('.nav-lock');
+        if (locked) {
+          a.classList.add('nav-locked');
+          if (lock) lock.style.display = '';
+          a.onclick = function(e) { e.preventDefault(); if (window.__dss_toggleLogin) window.__dss_toggleLogin(); };
+        } else {
+          a.classList.remove('nav-locked');
+          if (lock) lock.style.display = 'none';
+          a.onclick = null;
+        }
       });
     }
     updateAuthBtn();
