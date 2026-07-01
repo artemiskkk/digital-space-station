@@ -6,3 +6,6 @@ backend/dss-backend
 uploads/
 digital-space-station.zip
 digital-space-station-v2/
+
+# Claude local settings (may contain secrets)
+.claude/settings.local.json
