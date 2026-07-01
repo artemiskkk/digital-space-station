@@ -1,141 +1,142 @@
 # Digital Space Station (DSS)
 
-> 个人数字空间站 —— 零成本、免运维、前后端分离的个人专属站点。
-> 用于沉淀技术博客、记录碎片化灵感（Moments）、留存人生里程碑。
+> A zero-cost, maintenance-free personal website with a decoupled frontend and backend.
+> Built for publishing a tech blog, jotting down fragmented thoughts (Moments), and tracking life milestones.
 
-线上地址：**https://artemis-space.vercel.app**
-
----
-
-## ✨ 功能
-
-- **博客（Blog）** —— 支持 Markdown 长文，含标题、摘要、分类、标签、草稿/发布状态。
-- **碎片（Moments）** —— 极简的「短文本 + 心情」随手记。
-- **里程碑（Milestones）** —— 时间轴形式记录重要时刻。
-- **单一管理员鉴权** —— 不开放注册，JWT 登录，前台直接内联编辑/发布。
-- **桌面看板娘** —— 一只会漂浮、追鼠标、说话的 SVG 小机器人。
+Live site: **https://artemis-space.vercel.app**
 
 ---
 
-## 🧱 技术栈与架构
+## ✨ Features
+
+- **Blog** — Markdown long-form posts with title, excerpt, category, tags, and draft/published status.
+- **Moments** — a minimal "short text + mood" quick-note feed.
+- **Milestones** — a timeline of meaningful moments.
+- **Single-admin auth** — no public registration; JWT login with inline editing/publishing right on the frontend.
+- **Companion** — a floating SVG satellite probe that drifts, tracks the cursor, and pops speech bubbles.
+
+---
+
+## 🧱 Tech Stack & Architecture
 
 ```
 ┌─────────────────┐      ┌──────────────────┐      ┌────────────────┐
 │  space-station  │      │     backend      │      │    Supabase    │
-│  Astro (前台)   │ ───► │   Go + Gin (API) │ ───► │  PostgreSQL    │
-│  Vercel 托管    │      │   Render 托管    │      │   (数据库)     │
+│  Astro (front)  │ ───► │   Go + Gin (API) │ ───► │  PostgreSQL    │
+│  Vercel hosting │      │  Render hosting  │      │   (database)   │
 └─────────────────┘      └──────────────────┘      └────────────────┘
 ```
 
-| 层 | 技术 | 托管 |
-|----|------|------|
-| 前台 | [Astro](https://astro.build) 4 + Tailwind CSS | Vercel |
-| 后端 | Go + [Gin](https://gin-gonic.com) + [pgx](https://github.com/jackc/pgx) + JWT | Render |
-| 数据库 | PostgreSQL | Supabase |
-| 后台（可选） | Vue 3 + Vite（`admin/`，目前编辑直接在前台完成） | — |
+| Layer | Tech | Hosting |
+|-------|------|---------|
+| Frontend | [Astro](https://astro.build) 4 + Tailwind CSS | Vercel |
+| Backend | Go + [Gin](https://gin-gonic.com) + [pgx](https://github.com/jackc/pgx) + JWT | Render |
+| Database | PostgreSQL | Supabase |
+| Media | Cloudinary (unsigned direct upload) | Cloudinary |
+| Admin (optional) | Vue 3 + Vite (`admin/`, editing is currently done on the frontend) | — |
 
-**性能设计**：首页与博客列表为**静态预渲染（SSG）**，挂在 Vercel CDN 上秒开；
-文章数据由浏览器**客户端异步拉取**（带骨架屏），不阻塞于后端冷启动。
+**Performance design:** the homepage and blog list are **statically prerendered (SSG)** and served from Vercel's CDN for instant loads; post data is **fetched client-side** (with skeleton loaders) so pages never block on backend cold starts.
 
 ---
 
-## 📁 仓库结构（Monorepo）
+## 📁 Repository Layout (Monorepo)
 
 ```
 digital_space_dev/
-├── backend/            # Go API 服务
+├── backend/            # Go API service
 │   ├── main.go
-│   ├── schema.sql      # 数据库建表脚本
+│   ├── schema.sql      # Database schema
 │   └── internal/
-│       ├── config/     # 环境变量加载
-│       ├── handler/    # 路由处理（blog / moments / milestones / auth / upload）
-│       ├── middleware/ # CORS、JWT 鉴权
-│       ├── model/      # 数据模型
-│       └── store/      # 数据库查询
-├── space-station/      # Astro 前台
+│       ├── config/     # Env var loading
+│       ├── handler/    # Route handlers (blog / moments / milestones / auth / upload)
+│       ├── middleware/ # CORS, JWT auth
+│       ├── model/      # Data models
+│       └── store/      # Database queries
+├── space-station/      # Astro frontend
 │   └── src/
-│       ├── pages/      # 路由页面
-│       ├── components/ # 组件（含看板娘 Companion）
-│       └── layouts/    # 全局布局
-└── admin/              # Vue 后台（可选）
+│       ├── pages/      # Route pages
+│       ├── components/ # Components (incl. the Companion)
+│       └── layouts/    # Global layout
+└── admin/              # Vue admin panel (optional)
 ```
 
 ---
 
-## 🚀 本地开发
+## 🚀 Local Development
 
-### 后端
+### Backend
 
 ```bash
 cd backend
-cp .env.example .env        # 填写下方环境变量
-go run .                    # 默认监听 :8080
+cp .env.example .env        # fill in the vars below
+go run .                    # listens on :8080 by default
 ```
 
-`.env` 必填项：
+Required `.env` values:
 
-| 变量 | 说明 |
-|------|------|
-| `DATABASE_URL` | PostgreSQL 连接串（Supabase 提供） |
-| `JWT_SECRET` | JWT 签名密钥（随机字符串） |
-| `ADMIN_PASSWORD` | 管理员初始密码 |
-| `ADMIN_USERNAME` | 管理员用户名（可选，默认 `admin`） |
-| `FRONTEND_URL` | 前台地址，用于 CORS 白名单 |
-| `PORT` | 端口（可选，默认 `8080`） |
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (from Supabase) |
+| `JWT_SECRET` | JWT signing secret (random string) |
+| `ADMIN_PASSWORD` | Initial admin password |
+| `ADMIN_USERNAME` | Admin username (optional, defaults to `admin`) |
+| `FRONTEND_URL` | Frontend origin, used for the CORS allowlist |
+| `PORT` | Port (optional, defaults to `8080`) |
 
-首次启动会自动建立管理员账号（若数据库无 admin 角色用户）。
-建表脚本见 `backend/schema.sql`，在 Supabase SQL Editor 中执行。
+On first startup the backend creates the admin account automatically (if no admin-role user exists).
+The schema lives in `backend/schema.sql`; run it in the Supabase SQL Editor.
 
-### 前台
+### Frontend
 
 ```bash
 cd space-station
 npm install
-npm run dev                 # 默认 http://localhost:4321
+npm run dev                 # http://localhost:4321 by default
 ```
 
-前台环境变量（`.env`）：
+Frontend `.env`:
 
-| 变量 | 说明 |
-|------|------|
-| `PUBLIC_API_URL` | 后端 API 地址，如 `http://localhost:8080` |
-
----
-
-## ☁️ 部署
-
-| 组件 | 平台 | 关键配置 |
-|------|------|----------|
-| 后端 | Render（Web Service） | Root: `backend`，Build: `go build -o app .`，Start: `./app` |
-| 前台 | Vercel | Root: `space-station`，Framework: Astro，Node: 20.x |
-| 数据库 | Supabase | 执行 `backend/schema.sql` 建表 |
-
-部署时记得：
-- Render 配置全部环境变量，`FRONTEND_URL` 指向 Vercel 域名。
-- Vercel 配置 `PUBLIC_API_URL` 指向 Render 域名。
-- 修改任一域名后，需同步更新对端配置（否则 CORS 拦截）。
-
-> ⚠️ Render 免费实例闲置约 15 分钟会休眠，再次访问有数十秒冷启动延迟，属正常现象。
-> 可用 UptimeRobot 等免费服务定时 ping `/health` 保活。
+| Variable | Description |
+|----------|-------------|
+| `PUBLIC_API_URL` | Backend API URL, e.g. `http://localhost:8080` |
 
 ---
 
-## 🔌 API 概览
+## ☁️ Deployment
 
-| 方法 | 路径 | 鉴权 | 说明 |
-|------|------|------|------|
-| POST | `/api/auth/login` | — | 登录获取 token |
-| GET | `/api/public/posts` | — | 公开的已发布文章列表 |
-| GET | `/api/posts` | ✅ | 本人全部文章 |
-| GET | `/api/posts/:slug` | ✅ | 单篇文章 |
-| POST | `/api/posts` | ✅ | 发布文章 |
-| DELETE | `/api/posts/:id` | ✅ | 删除文章 |
-| GET/POST/DELETE | `/api/moments` | ✅ | 碎片增删查 |
-| GET/POST/DELETE | `/api/milestones` | ✅ | 里程碑增删查 |
-| GET | `/health` | — | 健康检查 |
+| Component | Platform | Key settings |
+|-----------|----------|--------------|
+| Backend | Render (Web Service) | Root: `backend`, Build: `go build -o app .`, Start: `./app` |
+| Frontend | Vercel | Root: `space-station`, Framework: Astro, Node: 20.x |
+| Database | Supabase | Run `backend/schema.sql` to create tables |
+
+Deployment notes:
+- Set all backend env vars on Render; point `FRONTEND_URL` at the Vercel domain.
+- Set `PUBLIC_API_URL` on Vercel to the Render domain.
+- After changing either domain, update the other side too (otherwise CORS blocks requests).
+
+> ⚠️ Render's free instance sleeps after ~15 minutes of inactivity, so the next request may take tens of seconds to wake it — this is normal.
+> Use a free uptime service (e.g. UptimeRobot) to ping `/health` every 5 minutes and keep it warm.
+
+---
+
+## 🔌 API Overview
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/auth/login` | — | Log in and get a token |
+| GET | `/api/public/posts` | — | Public list of published posts |
+| GET | `/api/posts` | ✅ | The user's own posts |
+| GET | `/api/posts/:slug` | ✅ | A single post |
+| POST | `/api/posts` | ✅ | Create a post |
+| PUT | `/api/posts/:id` | ✅ | Update a post |
+| DELETE | `/api/posts/:id` | ✅ | Delete a post |
+| GET/POST/DELETE | `/api/moments` | ✅ | Moments CRUD |
+| GET/POST/DELETE | `/api/milestones` | ✅ | Milestones CRUD |
+| GET | `/health` | — | Health check |
 
 ---
 
 ## 📄 License
 
-个人项目，自用为主。
+Personal project, primarily for my own use.
