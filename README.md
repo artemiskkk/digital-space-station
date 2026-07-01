@@ -134,9 +134,3 @@ Deployment notes:
 | GET/POST/DELETE | `/api/moments` | ✅ | Moments CRUD |
 | GET/POST/DELETE | `/api/milestones` | ✅ | Milestones CRUD |
 | GET | `/health` | — | Health check |
-
----
-
-## 📄 License
-
-Personal project, primarily for my own use.
