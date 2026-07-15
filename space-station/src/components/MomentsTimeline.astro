@@ -66,6 +66,12 @@
         return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
       });
     }
+    function fmtLocal(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      var p = function(n) { return String(n).padStart(2, '0'); };
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
 
     // Moments require auth; if not logged in, show nothing meaningful
     if (!window.__dss_isLoggedIn || !window.__dss_isLoggedIn()) {
@@ -83,7 +89,7 @@
       }
       box.innerHTML = items.map(function(m) {
         var id = String(m.id).padStart(3, '0');
-        var time = (m.created_at || '').replace('T', ' ').slice(0, 16);
+        var time = fmtLocal(m.created_at || '');
         var mood = m.mood || '💬';
         return '<li class="moment-item relative pl-12 pb-10 group">' +
           '<div class="moment-dot absolute left-0 top-1 w-[38px] h-[38px] flex items-center justify-center rounded-full text-base transition-all duration-300" style="background:#fafafa;border:1px solid #e5e7eb;">' + mood + '</div>' +

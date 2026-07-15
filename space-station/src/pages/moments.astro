@@ -16,6 +16,7 @@ try {
   moments = (data.items || []).map((m: any) => ({
     id:   String(m.id).padStart(3, '0'),
     rawId: m.id,
+    iso:  m.created_at || '',
     time: m.created_at?.replace('T', ' ').slice(0, 16) || '',
     text: m.text,
     mood: m.mood || '💬',
@@ -87,8 +88,8 @@ const moods = ['⚡', '🛸', '💡', '🔧', '📡', '☕', '🌙', '📦', '�
               </div>
               <div class="moment-card rounded-lg p-5 transition-all duration-300" style="background: #fff; border: 1px solid #e5e7eb;">
                 <div class="flex items-center justify-between mb-2.5">
-                  <time datetime={moment.time} class="text-[11px] tracking-widest" style="font-family: 'DM Mono', monospace; color: #d1d5db;">
-                    {moment.time}
+                  <time datetime={moment.iso} class="text-[11px] tracking-widest" style="font-family: 'DM Mono', monospace; color: #d1d5db;">
+                    <span class="moment-time-text" data-utc={moment.iso}>{moment.time}</span>
                     <span class="ml-2" style="color: #e5e7eb;">#{moment.id}</span>
                   </time>
                   <button class="del-btn opacity-0 group-hover:opacity-100 transition-opacity text-[11px] px-2 py-0.5 rounded" data-id={moment.rawId} style="font-family: 'DM Mono', monospace; color: #d1d5db; background: none; border: none; cursor: pointer;">
@@ -123,6 +124,17 @@ const moods = ['⚡', '🛸', '💡', '🔧', '📡', '☕', '🌙', '📦', '�
 
   var API = window.__DSS_API;
   var selectedMood = '⚡';
+
+  // Convert server UTC timestamps to the viewer's local time
+  function fmtLocal(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    var p = function(n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  document.querySelectorAll('.moment-time-text').forEach(function(el) {
+    if (el.dataset.utc) el.textContent = fmtLocal(el.dataset.utc);
+  });
 
   function getToken() {
     return Promise.resolve(window.__dss_getToken ? window.__dss_getToken() : '');
