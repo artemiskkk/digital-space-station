@@ -278,6 +278,23 @@ const formattedDate = new Date(post.created_at).toLocaleDateString('zh-CN', {
     color: #ffffff;
   }
 
+  /* 引用块——浅色背景下清晰可读 */
+  .article-content :global(blockquote) {
+    border-left: 3px solid #0891b2;
+    background: rgba(8,145,178,0.05);
+    padding: 12px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 1.4em 0;
+    font-style: normal;
+  }
+  .article-content :global(blockquote p) {
+    margin: 0;
+    color: #374151;
+    font-style: normal;
+  }
+  .article-content :global(blockquote p::before),
+  .article-content :global(blockquote p::after) { content: none; }
+
   /* 行内代码（非代码块内）——浅色背景下清晰可读 */
   .article-content :global(:not(pre) > code) {
     font-family: 'DM Mono', monospace;
