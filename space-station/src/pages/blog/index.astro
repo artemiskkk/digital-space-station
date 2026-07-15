@@ -679,30 +679,55 @@ const categories = [
     var btn = document.getElementById('publishPost');
     var isEdit = !!editingId;
     btn.textContent = isEdit ? '保存中...' : '发布中...';
-    getToken().then(function(t) {
-      var tagsStr = document.getElementById('postTags').value;
-      var category = document.getElementById('postCategory').value;
-      var tagsArr = tagsStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-      if (category && tagsArr.indexOf(category) === -1) tagsArr.unshift(category);
-      var payload = {
-        title: title,
-        slug: slugInput.value || title,
-        excerpt: document.getElementById('postExcerpt').value,
-        content: document.getElementById('postContent').value,
-        tags: tagsArr,
-        status: document.getElementById('postStatus').value,
-        read_time: '', cover_url: ''
-      };
-      return fetch(API + '/api/posts' + (isEdit ? '/' + editingId : ''), {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
-        body: JSON.stringify(payload)
+
+    var tagsStr = document.getElementById('postTags').value;
+    var category = document.getElementById('postCategory').value;
+    var tagsArr = tagsStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    if (category && tagsArr.indexOf(category) === -1) tagsArr.unshift(category);
+
+    // Ensure a non-empty slug (Chinese titles reduce to empty → use a unique fallback)
+    var slug = (slugInput.value || '').trim();
+    if (!slug) slug = 'post-' + Date.now().toString(36);
+
+    function resetBtn() { btn.textContent = isEdit ? '保存修改' : '发布'; }
+
+    function submit(slugValue, retried) {
+      getToken().then(function(t) {
+        var payload = {
+          title: title,
+          slug: slugValue,
+          excerpt: document.getElementById('postExcerpt').value,
+          content: document.getElementById('postContent').value,
+          tags: tagsArr,
+          status: document.getElementById('postStatus').value,
+          read_time: '', cover_url: ''
+        };
+        return fetch(API + '/api/posts' + (isEdit ? '/' + editingId : ''), {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t },
+          body: JSON.stringify(payload)
+        });
+      }).then(function(res) {
+        return res.text().then(function(txt) {
+          var data = {}; try { data = JSON.parse(txt); } catch (e) {}
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      }).then(function(r) {
+        if (r.ok) { location.reload(); return; }
+        var msg = (r.data && r.data.error) || '';
+        // slug taken → append a unique suffix and retry once (new posts only)
+        if (!isEdit && !retried && /slug|duplicate|unique|already exists/i.test(msg)) {
+          submit(slugValue + '-' + Date.now().toString(36), true);
+          return;
+        }
+        alert((isEdit ? '保存失败' : '发布失败') + (msg ? '：' + msg : '（URL 别名可能重复，请换一个）'));
+        resetBtn();
+      }).catch(function() {
+        alert(isEdit ? '保存失败' : '发布失败');
+        resetBtn();
       });
-    }).then(function() {
-      location.reload();
-    }).catch(function() {
-      alert(isEdit ? '保存失败' : '发布失败');
-      btn.textContent = isEdit ? '保存修改' : '发布';
-    });
+    }
+
+    submit(slug, false);
   });
 </script>
