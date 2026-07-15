@@ -75,6 +75,15 @@
     100% { transform: translateY(0) scale(1) rotate(0); }
   }
 
+  /* Walking: quick footstep bob overrides the idle float */
+  .companion.walking .companion-body { animation: companionWalk 0.42s ease-in-out infinite; }
+  @keyframes companionWalk {
+    0%, 100% { transform: translateY(0) rotate(-3.5deg); }
+    50%      { transform: translateY(-7px) rotate(3.5deg); }
+  }
+  /* Face the direction of travel */
+  .companion-img.flip { transform: scaleX(-1); }
+
   /* Speech bubble */
   .companion-bubble {
     position: absolute;
@@ -158,11 +167,42 @@
       say(pick(pokeLines), 2000);
     });
 
+    // ── Wander: stroll along the bottom every so often ──────
+    var img = el.querySelector('.companion-img');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var wanderTimer = null;
+
+    function stopWalk() {
+      el.classList.remove('walking');
+      el.style.transition = '';
+    }
+    function wander() {
+      if (el.classList.contains('dragging')) { scheduleWander(); return; }
+      var minR = 20, maxR = Math.min(340, window.innerWidth * 0.5);
+      var cur = window.innerWidth - el.getBoundingClientRect().right;
+      var target = minR + Math.random() * (maxR - minR);
+      var dist = Math.abs(target - cur);
+      if (dist < 50) { scheduleWander(); return; }
+      var dur = Math.max(1.4, dist / 65); // ~65px per second
+      if (target < cur) img.classList.add('flip'); else img.classList.remove('flip');
+      el.classList.add('walking');
+      el.style.transition = 'right ' + dur + 's linear';
+      el.style.right = target + 'px';
+      setTimeout(function() { stopWalk(); img.classList.remove('flip'); scheduleWander(); }, dur * 1000 + 120);
+    }
+    function scheduleWander() {
+      clearTimeout(wanderTimer);
+      wanderTimer = setTimeout(wander, 7000 + Math.random() * 9000);
+    }
+    if (!reduce) scheduleWander();
+
     // Drag
     var startX, startY, originRight, originBottom, moved;
     function onDown(e) {
       var pt = e.touches ? e.touches[0] : e;
       startX = pt.clientX; startY = pt.clientY;
+      stopWalk();                 // cancel any in-progress stroll
+      clearTimeout(wanderTimer);
       var rect = el.getBoundingClientRect();
       originRight = window.innerWidth - rect.right;
       originBottom = window.innerHeight - rect.bottom;
@@ -188,6 +228,7 @@
       document.removeEventListener('mouseup', onUp);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onUp);
+      if (!reduce) scheduleWander();   // resume strolling
     }
     el.addEventListener('mousedown', onDown);
     el.addEventListener('touchstart', onDown, { passive: true });
