@@ -1,5 +1,6 @@
 ---
-// DSS Companion — an astronaut red-panda mascot: floats, speaks in bubbles, draggable.
+// DSS Companion — astronaut red-panda mascot with real frame animation:
+// walk cycle (3 frames), blink, glance. Floats, speaks, draggable, wanders.
 ---
 
 <div id="dssCompanion" class="companion" aria-hidden="true">
@@ -9,7 +10,7 @@
   <!-- Mascot -->
   <div id="companionBody" class="companion-body">
     <div class="companion-shadow"></div>
-    <img src="/companion.png" alt="" class="companion-img" draggable="false" />
+    <img src="/companion/idle.png" alt="" class="companion-img" draggable="false" />
   </div>
 </div>
 
@@ -20,7 +21,7 @@
     bottom: 18px;
     z-index: 90;
     width: 104px;
-    height: 130px;
+    height: 132px;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -62,7 +63,7 @@
 
   @keyframes companionFloat {
     0%, 100% { transform: translateY(0) rotate(-1.5deg); }
-    50%      { transform: translateY(-10px) rotate(1.5deg); }
+    50%      { transform: translateY(-9px) rotate(1.5deg); }
   }
   @keyframes companionShadow {
     0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
@@ -75,11 +76,11 @@
     100% { transform: translateY(0) scale(1) rotate(0); }
   }
 
-  /* Walking: quick footstep bob overrides the idle float */
-  .companion.walking .companion-body { animation: companionWalk 0.42s ease-in-out infinite; }
+  /* Walking: footsteps come from the frame cycle; add just a light bounce */
+  .companion.walking .companion-body { animation: companionWalk 0.44s ease-in-out infinite; }
   @keyframes companionWalk {
-    0%, 100% { transform: translateY(0) rotate(-3.5deg); }
-    50%      { transform: translateY(-7px) rotate(3.5deg); }
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
   }
   /* Face the direction of travel */
   .companion-img.flip { transform: scaleX(-1); }
@@ -130,7 +131,48 @@
 
     var body = document.getElementById('companionBody');
     var bubble = document.getElementById('companionBubble');
+    var img = el.querySelector('.companion-img');
 
+    // ── Frames ───────────────────────────────────────────────
+    var F = {
+      idle:   '/companion/idle.png',
+      blink:  '/companion/blink.png',
+      glance: '/companion/glance.png',
+      w1:     '/companion/walk1.png',
+      w2:     '/companion/walk2.png',
+      w3:     '/companion/walk3.png'
+    };
+    for (var k in F) { var pre = new Image(); pre.src = F[k]; }
+
+    var walkCycle = [F.w1, F.w3, F.w2, F.w3];
+    var walkIdx = 0, walkAnim = null;
+
+    function startWalkFrames() {
+      stopWalkFrames();
+      walkIdx = 0;
+      walkAnim = setInterval(function() {
+        img.src = walkCycle[walkIdx++ % walkCycle.length];
+      }, 210);
+    }
+    function stopWalkFrames() {
+      if (walkAnim) { clearInterval(walkAnim); walkAnim = null; }
+      img.src = F.idle;
+    }
+
+    // Idle life: blink / glance now and then (not while walking or dragging)
+    setInterval(function() {
+      if (walkAnim || el.classList.contains('dragging')) return;
+      var r = Math.random();
+      if (r < 0.55) {
+        img.src = F.blink;
+        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 200);
+      } else if (r < 0.8) {
+        img.src = F.glance;
+        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 900);
+      }
+    }, 3600);
+
+    // ── Speech ───────────────────────────────────────────────
     var idleLines = [
       '信号良好，轨道稳定 📡',
       '正在巡视数字空间…',
@@ -161,44 +203,49 @@
     body.addEventListener('click', function() {
       if (el._dragged) { el._dragged = false; return; }
       el.classList.remove('poke'); void el.offsetWidth; el.classList.add('poke');
+      if (!walkAnim) {           // happy closed-eyes reaction
+        img.src = F.blink;
+        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 700);
+      }
       say(pick(pokeLines), 2000);
     });
 
     // ── Wander: stroll along the bottom every so often ──────
-    var img = el.querySelector('.companion-img');
     var wanderTimer = null;
 
     function stopWalk() {
       el.classList.remove('walking');
       el.style.transition = '';
+      stopWalkFrames();
+      img.classList.remove('flip');
     }
     function wander() {
       if (el.classList.contains('dragging')) { scheduleWander(); return; }
       var minR = 20, maxR = Math.min(520, window.innerWidth * 0.6);
       var cur = window.innerWidth - el.getBoundingClientRect().right;
       var target = minR + Math.random() * (maxR - minR);
-      if (Math.abs(target - cur) < 80) target = (cur > (maxR + minR) / 2) ? minR : maxR; // always take a real walk
+      if (Math.abs(target - cur) < 80) target = (cur > (maxR + minR) / 2) ? minR : maxR;
       var dist = Math.abs(target - cur);
-      var dur = Math.max(1.2, dist / 85); // ~85px per second
+      var dur = Math.max(1.2, dist / 85);
       if (target < cur) img.classList.add('flip'); else img.classList.remove('flip');
       el.classList.add('walking');
+      startWalkFrames();
       el.style.transition = 'right ' + dur + 's linear';
       el.style.right = target + 'px';
-      setTimeout(function() { stopWalk(); img.classList.remove('flip'); scheduleWander(); }, dur * 1000 + 120);
+      setTimeout(function() { stopWalk(); scheduleWander(); }, dur * 1000 + 120);
     }
     function scheduleWander() {
       clearTimeout(wanderTimer);
       wanderTimer = setTimeout(wander, 5000 + Math.random() * 6000);
     }
-    // first stroll shortly after load
     wanderTimer = setTimeout(wander, 2500);
 
-    // Drag
+    // ── Drag ─────────────────────────────────────────────────
     var startX, startY, originRight, originBottom, moved;
     function onDown(e) {
       var pt = e.touches ? e.touches[0] : e;
       startX = pt.clientX; startY = pt.clientY;
-      stopWalk();                 // cancel any in-progress stroll
+      stopWalk();
       clearTimeout(wanderTimer);
       var rect = el.getBoundingClientRect();
       originRight = window.innerWidth - rect.right;
@@ -225,7 +272,7 @@
       document.removeEventListener('mouseup', onUp);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onUp);
-      scheduleWander();   // resume strolling
+      scheduleWander();
     }
     el.addEventListener('mousedown', onDown);
     el.addEventListener('touchstart', onDown, { passive: true });
