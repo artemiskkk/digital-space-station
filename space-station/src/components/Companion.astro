@@ -7,10 +7,13 @@
   <!-- Speech bubble -->
   <div id="companionBubble" class="companion-bubble"></div>
 
-  <!-- Mascot -->
+  <!-- Mascot (two stacked imgs for cross-fade between frames) -->
   <div id="companionBody" class="companion-body">
     <div class="companion-shadow"></div>
-    <img src="/companion/idle.png" alt="" class="companion-img" draggable="false" />
+    <div id="companionFrames" class="companion-frames">
+      <img src="/companion/idle.png" alt="" class="companion-img" id="companionMain" draggable="false" />
+      <img src="/companion/idle.png" alt="" class="companion-img companion-ghost" id="companionGhost" draggable="false" />
+    </div>
   </div>
 </div>
 
@@ -40,14 +43,27 @@
   .companion.dragging .companion-body { animation: none; }
   .companion.poke .companion-body { animation: companionPoke 0.55s cubic-bezier(.36,.07,.19,.97); }
 
-  .companion-img {
+  .companion-frames {
     position: relative;
     z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+  /* Face the direction of travel (flip the whole frame stack) */
+  .companion-frames.flip { transform: scaleX(-1); }
+
+  .companion-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
     filter: drop-shadow(0 6px 10px rgba(0,0,0,0.22));
     pointer-events: none;
+  }
+  .companion-ghost {
+    opacity: 0;
+    z-index: 2;
   }
 
   .companion-shadow {
@@ -77,13 +93,11 @@
   }
 
   /* Walking: footsteps come from the frame cycle; add just a light bounce */
-  .companion.walking .companion-body { animation: companionWalk 0.44s ease-in-out infinite; }
+  .companion.walking .companion-body { animation: companionWalk 0.48s ease-in-out infinite; }
   @keyframes companionWalk {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-4px); }
   }
-  /* Face the direction of travel */
-  .companion-img.flip { transform: scaleX(-1); }
 
   /* Speech bubble */
   .companion-bubble {
@@ -131,7 +145,9 @@
 
     var body = document.getElementById('companionBody');
     var bubble = document.getElementById('companionBubble');
-    var img = el.querySelector('.companion-img');
+    var framesEl = document.getElementById('companionFrames');
+    var img = document.getElementById('companionMain');
+    var ghost = document.getElementById('companionGhost');
 
     // ── Frames ───────────────────────────────────────────────
     var F = {
@@ -144,6 +160,20 @@
     };
     for (var k in F) { var pre = new Image(); pre.src = F[k]; }
 
+    // Cross-fade frame swap: old frame lingers on the ghost layer and fades out
+    var curFrame = F.idle;
+    function setFrame(src) {
+      if (src === curFrame) return;
+      ghost.src = curFrame;
+      ghost.style.transition = 'none';
+      ghost.style.opacity = '1';
+      void ghost.offsetWidth;                    // reflow to apply instantly
+      ghost.style.transition = 'opacity 110ms linear';
+      ghost.style.opacity = '0';
+      img.src = src;
+      curFrame = src;
+    }
+
     var walkCycle = [F.w1, F.w3, F.w2, F.w3];
     var walkIdx = 0, walkAnim = null;
 
@@ -151,12 +181,12 @@
       stopWalkFrames();
       walkIdx = 0;
       walkAnim = setInterval(function() {
-        img.src = walkCycle[walkIdx++ % walkCycle.length];
-      }, 210);
+        setFrame(walkCycle[walkIdx++ % walkCycle.length]);
+      }, 230);
     }
     function stopWalkFrames() {
       if (walkAnim) { clearInterval(walkAnim); walkAnim = null; }
-      img.src = F.idle;
+      setFrame(F.idle);
     }
 
     // Idle life: blink / glance now and then (not while walking or dragging)
@@ -164,11 +194,11 @@
       if (walkAnim || el.classList.contains('dragging')) return;
       var r = Math.random();
       if (r < 0.55) {
-        img.src = F.blink;
-        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 200);
+        setFrame(F.blink);
+        setTimeout(function() { if (!walkAnim) setFrame(F.idle); }, 220);
       } else if (r < 0.8) {
-        img.src = F.glance;
-        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 900);
+        setFrame(F.glance);
+        setTimeout(function() { if (!walkAnim) setFrame(F.idle); }, 900);
       }
     }, 3600);
 
@@ -204,8 +234,8 @@
       if (el._dragged) { el._dragged = false; return; }
       el.classList.remove('poke'); void el.offsetWidth; el.classList.add('poke');
       if (!walkAnim) {           // happy closed-eyes reaction
-        img.src = F.blink;
-        setTimeout(function() { if (!walkAnim) img.src = F.idle; }, 700);
+        setFrame(F.blink);
+        setTimeout(function() { if (!walkAnim) setFrame(F.idle); }, 700);
       }
       say(pick(pokeLines), 2000);
     });
@@ -217,7 +247,7 @@
       el.classList.remove('walking');
       el.style.transition = '';
       stopWalkFrames();
-      img.classList.remove('flip');
+      framesEl.classList.remove('flip');
     }
     function wander() {
       if (el.classList.contains('dragging')) { scheduleWander(); return; }
@@ -227,7 +257,7 @@
       if (Math.abs(target - cur) < 80) target = (cur > (maxR + minR) / 2) ? minR : maxR;
       var dist = Math.abs(target - cur);
       var dur = Math.max(1.2, dist / 85);
-      if (target < cur) img.classList.add('flip'); else img.classList.remove('flip');
+      if (target < cur) framesEl.classList.add('flip'); else framesEl.classList.remove('flip');
       el.classList.add('walking');
       startWalkFrames();
       el.style.transition = 'right ' + dur + 's linear';
