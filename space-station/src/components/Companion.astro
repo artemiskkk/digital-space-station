@@ -121,9 +121,6 @@
   @media (max-width: 640px) {
     .companion { right: 12px; bottom: 12px; transform: scale(0.82); transform-origin: bottom right; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .companion-body, .companion-shadow { animation: none !important; }
-  }
 </style>
 
 <script is:inline>
@@ -169,7 +166,6 @@
 
     // ── Wander: stroll along the bottom every so often ──────
     var img = el.querySelector('.companion-img');
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var wanderTimer = null;
 
     function stopWalk() {
@@ -178,12 +174,12 @@
     }
     function wander() {
       if (el.classList.contains('dragging')) { scheduleWander(); return; }
-      var minR = 20, maxR = Math.min(340, window.innerWidth * 0.5);
+      var minR = 20, maxR = Math.min(520, window.innerWidth * 0.6);
       var cur = window.innerWidth - el.getBoundingClientRect().right;
       var target = minR + Math.random() * (maxR - minR);
+      if (Math.abs(target - cur) < 80) target = (cur > (maxR + minR) / 2) ? minR : maxR; // always take a real walk
       var dist = Math.abs(target - cur);
-      if (dist < 50) { scheduleWander(); return; }
-      var dur = Math.max(1.4, dist / 65); // ~65px per second
+      var dur = Math.max(1.2, dist / 85); // ~85px per second
       if (target < cur) img.classList.add('flip'); else img.classList.remove('flip');
       el.classList.add('walking');
       el.style.transition = 'right ' + dur + 's linear';
@@ -192,9 +188,10 @@
     }
     function scheduleWander() {
       clearTimeout(wanderTimer);
-      wanderTimer = setTimeout(wander, 7000 + Math.random() * 9000);
+      wanderTimer = setTimeout(wander, 5000 + Math.random() * 6000);
     }
-    if (!reduce) scheduleWander();
+    // first stroll shortly after load
+    wanderTimer = setTimeout(wander, 2500);
 
     // Drag
     var startX, startY, originRight, originBottom, moved;
@@ -228,7 +225,7 @@
       document.removeEventListener('mouseup', onUp);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onUp);
-      if (!reduce) scheduleWander();   // resume strolling
+      scheduleWander();   // resume strolling
     }
     el.addEventListener('mousedown', onDown);
     el.addEventListener('touchstart', onDown, { passive: true });
