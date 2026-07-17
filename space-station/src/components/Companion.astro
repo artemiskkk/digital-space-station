@@ -92,8 +92,8 @@
     100% { transform: translateY(0) scale(1) rotate(0); }
   }
 
-  /* Walking: footsteps come from the frame cycle; add just a light bounce */
-  .companion.walking .companion-body { animation: companionWalk 0.48s ease-in-out infinite; }
+  /* Walking: footsteps come from the frame cycle; light bounce synced to step rate */
+  .companion.walking .companion-body { animation: companionWalk 0.44s ease-in-out infinite; }
   @keyframes companionWalk {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-4px); }
@@ -153,36 +153,36 @@
     var F = {
       idle:   '/companion/idle.png',
       blink:  '/companion/blink.png',
-      glance: '/companion/glance.png',
-      w1:     '/companion/walk1.png',
-      w2:     '/companion/walk2.png',
-      w3:     '/companion/walk3.png'
+      glance: '/companion/glance.png'
     };
+    // 8-frame side-view walk cycle (stride→pass→stride rhythm, pre-ordered)
+    var walkCycle = [];
+    for (var wi = 1; wi <= 8; wi++) walkCycle.push('/companion/wa' + wi + '.png');
     for (var k in F) { var pre = new Image(); pre.src = F[k]; }
+    walkCycle.forEach(function(u) { var p = new Image(); p.src = u; });
 
     // Cross-fade frame swap: old frame lingers on the ghost layer and fades out
     var curFrame = F.idle;
-    function setFrame(src) {
+    function setFrame(src, fadeMs) {
       if (src === curFrame) return;
       ghost.src = curFrame;
       ghost.style.transition = 'none';
       ghost.style.opacity = '1';
       void ghost.offsetWidth;                    // reflow to apply instantly
-      ghost.style.transition = 'opacity 110ms linear';
+      ghost.style.transition = 'opacity ' + (fadeMs || 110) + 'ms linear';
       ghost.style.opacity = '0';
       img.src = src;
       curFrame = src;
     }
 
-    var walkCycle = [F.w1, F.w3, F.w2, F.w3];
     var walkIdx = 0, walkAnim = null;
 
     function startWalkFrames() {
       stopWalkFrames();
       walkIdx = 0;
       walkAnim = setInterval(function() {
-        setFrame(walkCycle[walkIdx++ % walkCycle.length]);
-      }, 230);
+        setFrame(walkCycle[walkIdx++ % walkCycle.length], 60);
+      }, 110);
     }
     function stopWalkFrames() {
       if (walkAnim) { clearInterval(walkAnim); walkAnim = null; }
@@ -257,7 +257,8 @@
       if (Math.abs(target - cur) < 80) target = (cur > (maxR + minR) / 2) ? minR : maxR;
       var dist = Math.abs(target - cur);
       var dur = Math.max(1.2, dist / 85);
-      if (target < cur) framesEl.classList.add('flip'); else framesEl.classList.remove('flip');
+      // frames natively face right; target < cur means moving right on screen
+      if (target < cur) framesEl.classList.remove('flip'); else framesEl.classList.add('flip');
       el.classList.add('walking');
       startWalkFrames();
       el.style.transition = 'right ' + dur + 's linear';
